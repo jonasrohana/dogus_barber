@@ -621,21 +621,6 @@ class _AppointmentRowState extends State<AppointmentRow> {
                           ],
                         ),
                       ],
-                    if(app.status != null)
-                      ...[
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: getColorByStatus(app.status!).withValues(alpha: 0.4)
-                          ),
-                          child: Text(
-                            app.status!.tr(),
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: getColorByStatus(app.status!))
-                          ),
-                        )
-                      ],
                     if(appUser != null && appUser!.noShow.isNotEmpty)
                       ...[
                         const SizedBox(height: 8),
@@ -660,19 +645,6 @@ class _AppointmentRowState extends State<AppointmentRow> {
                     context: context,
                     builder: (BuildContext context) => ActionSheet(
                       actions: [
-                        if(!isFutureDate(app.date) && app.status == "pending_cash")
-                          ActionSheetAction(
-                            icon: Ionicons.cash_outline,
-                            name: "Als bezahlt markieren",
-                            onPressed: () async {
-                              FirebaseFirestore.instance
-                                .collection("vendors").doc(vendor.id)
-                                .collection("employees").doc(app.employeeId)
-                                .collection("privateAppointments").doc(app.id)
-                                .update({ "status": "paid_cash" });
-                              setState(() => app.status = "paid_cash");
-                            }
-                          ),
                         ActionSheetAction(
                           icon: Ionicons.chatbubble_ellipses_outline,
                           name: "actions.sendMessage".tr(),

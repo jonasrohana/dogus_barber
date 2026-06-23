@@ -117,12 +117,29 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
                 text: "general.signOut".tr(),
                 onPressed: () async {
 
-                  // get user and token
                   setState(() => loading = true);
-                  String? token = await FirebaseMessaging.instance.getToken();
-                  await removeToken.call({ "token": token, "userId": userId });
-                  setState(() => loading = false);
+                  // get user and token
+                  String userId = FirebaseAuth.instance.currentUser!.uid;
                   await FirebaseAuth.instance.signOut();
+
+                  if(kDebugMode && mounted) {
+                    Navigator.pop(context);
+                    setState(() => loading = false);
+                    return;
+                  }
+
+                  String? token = await FirebaseMessaging.instance.getToken();
+
+                  if(token == null && mounted) {
+                    Navigator.pop(context);
+                    return;
+                  }
+
+                  // remove token from secure environment
+                  removeToken.call({"token": token, "userId": userId});
+                  if(!mounted) return;
+                  setState(() => loading = true);
+                  Navigator.pop(context);
                 },
               ),
               const SizedBox(height: 8),

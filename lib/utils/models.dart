@@ -413,9 +413,6 @@ class Appointment implements Comparable<Appointment> {
   String? vendorId;
   String? holidayId;
 
-  // payment params
-  String? status;
-
   Appointment({
     required this.id,
     required this.date,
@@ -430,7 +427,6 @@ class Appointment implements Comparable<Appointment> {
     this.employeeId,
     this.vendorId,
     this.holidayId,
-    this.status,
   });
 
   Map<String, dynamic> toMap() {
@@ -447,7 +443,6 @@ class Appointment implements Comparable<Appointment> {
       'employeeId': employeeId,
       'vendorId': vendorId,
       'holidayId': holidayId,
-      'status': status,
     };
   }
 
@@ -466,7 +461,6 @@ class Appointment implements Comparable<Appointment> {
       employeeId: map['employeeId'],
       vendorId: map['vendorId'],
       holidayId: map['holidayId'],
-      status: map.containsKey("status") ? map['status'] : "pending_cash",
     );
   }
 
@@ -543,10 +537,6 @@ class BookAppointmentParams {
   final double price;
   final List<int> colors;
 
-  // payment params
-  final String status;
-  String? subId;
-
   // Constructor
   BookAppointmentParams({
     required this.vendorId,
@@ -559,9 +549,7 @@ class BookAppointmentParams {
     required this.price,
     required this.phoneNr,
     required this.service,
-    required this.colors,
-    required this.status,
-    this.subId
+    required this.colors
   });
 
   // toMap method
@@ -578,8 +566,6 @@ class BookAppointmentParams {
       'phoneNr': phoneNr,
       'service': service,
       'colors': colors,
-      'status': status,
-      if(subId != null) 'subId': subId
     };
   }
 }
@@ -592,69 +578,4 @@ class DynamicImage {
   DynamicImage({required this.isFile, this.url, this.croppedFile});
 }
 
-
-class StripeSubscription {
-  String subscriptionId;
-  String status;
-  String productId;
-
-  // retrieved from product metadata
-  String productName;
-  String matchOn;
-  int monthlyQuota;
-
-  // to track usage, format: mm-yy: num_bookings through sub
-  Map<String, int> usedQuota;
-
-  StripeSubscription({
-    required this.subscriptionId,
-    required this.status,
-    required this.productId,
-    required this.productName,
-    required this.matchOn,
-    required this.monthlyQuota,
-    required this.usedQuota,
-  });
-
-  factory StripeSubscription.fromMap(Map<String, dynamic> map) {
-    return StripeSubscription(
-      subscriptionId: map['subscriptionId'] ?? '',
-      status: map['status'] ?? '',
-      productId: map['productId'] ?? '',
-      productName: map['productName'] ?? '',
-      matchOn: map['matchOn'] ?? '',
-      monthlyQuota: (map['monthlyQuota'] ?? 0).toInt(),
-      usedQuota: map['usedQuota'] != null ? Map<String, int>.from(map['usedQuota']) : {},
-    );
-  }
-}
-
-class StripeProduct {
-  final String id;
-  final String name;
-  final String description;
-  final String defaultPrice;
-  final bool active;
-  final Map<String, dynamic> metadata;
-
-  StripeProduct({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.defaultPrice,
-    required this.active,
-    required this.metadata,
-  });
-
-  factory StripeProduct.fromMap(Map<String, dynamic> map) {
-    return StripeProduct(
-      id: map["id"] ?? "",
-      name: map["name"] ?? "",
-      description: map["description"] ?? "",
-      defaultPrice: map["default_price"] ?? "",
-      active: map["active"] ?? false,
-      metadata: Map<String, dynamic>.from(map["metadata"] ?? {}),
-    );
-  }
-}
 

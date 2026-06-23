@@ -14,12 +14,10 @@ import 'package:dogus_barber/application/vendor/vendor_page.dart';
 import 'package:dogus_barber/auth+onboarding/employee_invitation.dart';
 import 'package:dogus_barber/auth+onboarding/user_onboarding.dart';
 import 'package:dogus_barber/controller+api/bookings_controller.dart';
-import 'package:dogus_barber/controller+api/subscription_controller.dart';
 import 'package:dogus_barber/utils/colors.dart';
 import 'package:dogus_barber/utils/constants.dart';
 import 'package:dogus_barber/utils/functions.dart';
 import 'package:dogus_barber/utils/models.dart';
-import 'package:dogus_barber/utils/stripe.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import 'auth+onboarding/login_register.dart';
 import 'controller+api/user_controller.dart';
@@ -33,7 +31,6 @@ Future<void> main() async {
 
   await EasyLocalization.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initStripe();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -56,8 +53,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: UserController()),
-        ChangeNotifierProvider.value(value: BookingsController()),
-        ChangeNotifierProvider.value(value: SubscriptionController()),
+        ChangeNotifierProvider.value(value: BookingsController())
       ],
       child: Builder( // to use provider here, we need a builder
         builder: (context) {
@@ -134,24 +130,6 @@ class _BasePageState extends State<BasePage> {
     logAppStartFunctions.call();
   }
 
-  Future<void> checkAppVersion() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String version = packageInfo.version;
-
-    final response = await getAppVersionFunctions.call();
-    String requiredVersion = Map<String, dynamic>.from(response.data)["minAppVersion"];
-
-    print(version);
-    print(requiredVersion);
-
-    if(isVersionLower(version, requiredVersion) && mounted) {
-      showDialog(
-        context: context,
-        builder: (context) => ForceUpdateDialog(),
-      );
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -167,7 +145,6 @@ class _BasePageState extends State<BasePage> {
       setState(() {});
     });
     logAppStart();
-    checkAppVersion();
   }
 
   @override

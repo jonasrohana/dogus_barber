@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -13,13 +12,11 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:dogus_barber/utils/models.dart';
 import '../../controller+api/bookings_controller.dart';
-import '../../controller+api/subscription_controller.dart';
 import '../../controller+api/user_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../utils/functions.dart';
 import '../../utils/public_holidays.dart';
-import '../../utils/stripe.dart';
 import '../../utils/widgets.dart';
 
 class CreateAppointment extends StatefulWidget {
@@ -30,8 +27,6 @@ class CreateAppointment extends StatefulWidget {
 }
 
 class _CreateAppointmentState extends State<CreateAppointment> with TickerProviderStateMixin  {
-
-  PaymentMethodEnum selectedMethod = PaymentMethodEnum.cash;
 
   int index = 0;
   final controller = PageController(keepPage: true, initialPage: 0);
@@ -48,66 +43,6 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   DateTime max = DateTime.now().add(const Duration(days: 21));
 
   bool loading = false;
-
-  // returns a bool and a status string
-  Map<String,dynamic> doesSubCoverAppointment(String serviceString) {
-    List<StripeSubscription> subs = Provider.of<SubscriptionController>(context, listen: false).subs;
-    List<StripeSubscription> activeSubs = getActiveSubs(subs);
-
-    final now = DateTime.now();
-    bool isFutureMonth = selectedDate.year > now.year || (selectedDate.year == now.year && selectedDate.month > now.month);
-
-    int isActiveSubIndex = activeSubs.indexWhere((s) => s.status == "active" && s.matchOn == serviceString);
-    int nextMonthSubIndex = activeSubs.indexWhere((s) => s.status == "start_next_month" && s.matchOn == serviceString);
-
-    // ACTIVE SUBS
-    // case 1: quota open -> covered by sub
-    // case 2: no quota left -> not covered by sub
-
-    // NEXT MONTH SUBS
-    // case 1: this month -> not covered by sub
-    // case 2: future month -> covered by sub
-
-    // active sub or next month starting sub and future months date
-    if(isActiveSubIndex != -1 || (nextMonthSubIndex != -1 && isFutureMonth)) {
-
-      int indexToUse = isActiveSubIndex != -1 ? isActiveSubIndex : nextMonthSubIndex;
-      StripeSubscription sub = activeSubs[indexToUse];
-      String subName = sub.productName;
-
-      String quotaString = dateTimeToQuotaString(selectedDate);
-      int bookingMonthQuota = sub.usedQuota[quotaString] ?? 0;
-
-      if(bookingMonthQuota < sub.monthlyQuota) {
-        return {
-          "covered": true,
-          "status": "Die Bezahlung des Termins ist von deinem Abo $subName gedeckt.",
-          "subId": sub.subscriptionId
-        };
-      }
-
-      return {
-        "covered": false,
-        "status": "Du hast alle Termine von deinem Abo $subName für diesen Monat bereits verbraucht. Die Bezahlung des Termins ist deshalb nicht von deinem Abo gedeckt."
-      };
-    }
-
-    // next month starting sub -> not covered yet
-    if(nextMonthSubIndex != -1) {
-
-      StripeSubscription sub = activeSubs[nextMonthSubIndex];
-      String subName = sub.productName;
-
-      return {
-        "covered": false,
-        "status": "Dein Abo $subName startet erst nächsten Monat."
-      };
-    }
-
-    return {
-      "covered": false
-    };
-  }
 
   Future<void> waitingListAction(String dateString) async {
     String userId = FirebaseAuth.instance.currentUser!.uid;
@@ -162,27 +97,10 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
       .collection("employees").doc(selectedEmployee!.id)
       .collection("privateAppointments").doc().id;
 
-    Map<String,dynamic> subState = doesSubCoverAppointment(serviceString);
-    bool isSub = subState["covered"];
-    late String status;
-    if(isSub) {
-      status = "paid_sub";
-    }
-    else if (selectedMethod == PaymentMethodEnum.cash) {
-      status = "pending_cash";
-    }
-    else {
-      status = "reserved";
-    }
-
     BookAppointmentParams params = BookAppointmentParams(vendorId: vendor.id, price: getPrice,
       date: firestoreString(selectedDate), id: id, startTime: selectedTime!.start, service: serviceString,
       endTime: selectedTime!.end, name: user.name, phoneNr: user.phoneNr, colors: colors,
-      employeeId: selectedEmployee!.id, status: status);
-
-    if(isSub) {
-      params.subId = subState["subId"];
-    }
+      employeeId: selectedEmployee!.id);
 
     setState(() => loading = true);
     try {
@@ -193,25 +111,6 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
       // read and handle response
       final parsedResponse = Map<String, dynamic>.from(response.data);
       String result = parsedResponse["result"];
-
-      // for payments, check
-      if (status == "reserved") {
-        if (parsedResponse.containsKey("clientSecret") && parsedResponse.containsKey("ephemeralKey") &&
-            parsedResponse.containsKey("customerId")) {
-          String clientSecret = parsedResponse["clientSecret"];
-          String ephemeralKey = parsedResponse["ephemeralKey"];
-          String customerId = parsedResponse["customerId"];
-          await stripeInstance.startPaymentFlow(clientSecret, customerId, ephemeralKey, serviceString, getPrice, selectedMethod);
-        }
-        else {
-          throw StripeException(
-            error: LocalizedErrorMessage(
-              code: FailureCode.Failed,
-              message: 'One of the for payment required fields was not found!',
-            ),
-          );
-        }
-      }
 
 
       // Handling the response
@@ -247,14 +146,6 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
         );
 
       }
-    }
-    on StripeException catch (se) {
-      print(se.error);
-      FirebaseFirestore.instance
-        .collection("vendors").doc(params.vendorId)
-        .collection("employees").doc(params.employeeId)
-        .collection("privateAppointments").doc(params.id)
-        .delete();
     }
     catch (e) {
       setState(() => loading = false);
@@ -625,8 +516,6 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   Widget get summary {
     ColorTheme colors = Provider.of<UserController>(context).getColors;
     String serviceString = chosenServices.map((e) => e.name).join(", ");
-    Map<String,dynamic> subState = doesSubCoverAppointment(serviceString);
-    bool isCoveredBySub = subState["covered"];
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
       child: LoadingStack(
@@ -786,161 +675,9 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
                 );
               },
             ),
-            const SizedBox(height: 10),
-            if(isCoveredBySub)
-              ...[
-                const SizedBox(height: 10),
-                pageTitle("Zahlung"),
-                const SizedBox(height: 15),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 15) + const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    subState["status"],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: colors.textColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ]
-            else
-              ...[
-                pageTitle("paymentMethod".tr()),
-                if(subState["status"] != null)
-                  ...[
-                    const SizedBox(height: 15),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Text(
-                        subState["status"],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: colors.textColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                  ],
-                const SizedBox(height: 15),
-                paymentMethodPicker,
-                const SizedBox(height: 50),
-              ]
           ],
         ),
       ),
-    );
-  }
-
-  Widget get paymentMethodPicker {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => selectedMethod = PaymentMethodEnum.card),
-                child: Container(
-                  clipBehavior: Clip.antiAlias,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: colors.buttonColor,
-                    border: Border.all(color: selectedMethod == PaymentMethodEnum.card ? colors.primary : Colors.transparent, width: 2)
-                  ),
-                  child: Center(
-                    child: Text(
-                      "creditCard".tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textColor
-                      )
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 15),
-            if(Platform.isIOS)
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => selectedMethod = PaymentMethodEnum.applePay),
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      color: colors.buttonColor,
-                      border: Border.all(color: selectedMethod == PaymentMethodEnum.applePay ? colors.primary : Colors.transparent, width: 2)
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Apple Pay",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textColor
-                        )
-                      ),
-                    ),
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => selectedMethod = PaymentMethodEnum.googlePay),
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: colors.buttonColor,
-                        border: Border.all(color: selectedMethod == PaymentMethodEnum.googlePay ? colors.primary : Colors.transparent, width: 2)
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Google Pay",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textColor
-                        )
-                      ),
-                    ),
-                  ),
-                ),
-              )
-          ],
-        ),
-        const SizedBox(height: 15),
-        GestureDetector(
-          onTap: () => setState(() => selectedMethod = PaymentMethodEnum.cash),
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: colors.buttonColor,
-              border: Border.all(color: selectedMethod == PaymentMethodEnum.cash ? colors.primary : Colors.transparent, width: 2)
-            ),
-            child: Center(
-              child: Text(
-                "cash".tr(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textColor
-                )
-              ),
-            ),
-          ),
-        )
-      ],
     );
   }
 

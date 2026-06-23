@@ -100,12 +100,11 @@ class _LoginScreenState extends State<LoginScreen> {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(15),
-                height: 200,
+                height: 250,
                 alignment: Alignment.center,
                 child: Image.asset('assets/logo/logo-transparent.png'),
               ),
             ),
-            const SizedBox(height: 25),
             buildTF(15, 5, TextInputType.emailAddress, type == LoginPageState.reset ? TextInputAction.done : TextInputAction.next, email, false, "login.email".tr(), _isSubmitted ? validateEmail(email.text) : null),
             if(type != LoginPageState.reset)
               buildTF(0,5, TextInputType.text, type == LoginPageState.signUp ? TextInputAction.next : TextInputAction.done, password, true, "login.password".tr(), _isSubmitted ? validatePassword(password.text) : null),

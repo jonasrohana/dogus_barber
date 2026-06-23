@@ -36,10 +36,6 @@ bool isFutureDate(String dateString) {
 
 String dateTimeToQuotaString(DateTime d) => "${d.month.toString().padLeft(2, "0")}-${d.year}";
 
-List<StripeSubscription> getActiveSubs(List<StripeSubscription> subs) {
-  return subs.where((s) => ["active","start_next_month","past_due"].contains(s.status)).toList();
-}
-
 Map<String,dynamic> getDesignBySubStatus(String status) {
   DateTime nextMonth = Jiffy.now().add(months: 1).dateTime;
   switch(status) {

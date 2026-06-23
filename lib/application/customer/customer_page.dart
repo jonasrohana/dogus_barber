@@ -14,13 +14,11 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:dogus_barber/application/customer/profile_settings.dart';
 import 'package:dogus_barber/controller+api/bookings_controller.dart';
-import 'package:dogus_barber/controller+api/subscription_controller.dart';
 import 'package:dogus_barber/utils/models.dart';
 import '../../controller+api/user_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../utils/functions.dart';
-import '../../utils/sub_paywall.dart';
 import '../../utils/widgets.dart';
 import '../chat/chat_decision.dart';
 import '../chat/chat_detail.dart';
@@ -323,8 +321,6 @@ class _CustomerBookingsState extends State<CustomerBookings> {
   @override
   Widget build(BuildContext context) {
     ColorTheme colors = Provider.of<UserController>(context).getColors;
-    List<StripeSubscription> subs = Provider.of<SubscriptionController>(context).subs;
-    List<StripeSubscription> activeSubs = getActiveSubs(subs);
     bool showSubs = kDebugMode || FirebaseAuth.instance.currentUser!.email != "test@yahoo.de";
     return SingleChildScrollView(
       child: LoadingStack(
@@ -333,232 +329,12 @@ class _CustomerBookingsState extends State<CustomerBookings> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 15),
-            if (activeSubs.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5),
-                child: activeSubs.length == 1 ?
-                SizedBox(
-                  width: (MediaQuery.of(context).size.width - 42) / 2,
-                  child: activeProgress(activeSubs.first),
-                )
-                  :
-                Row(
-                  children: [
-                    for (int i = 0; i < activeSubs.length; i++) ...[
-                      Expanded(child: activeProgress(activeSubs[i])),
-                      if (i != activeSubs.length - 1)
-                        const SizedBox(width: 10),
-                    ],
-                  ],
-                ),
-              ),
-            if(activeSubs.length < 2 && showSubs)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0,vertical: 5),
-                child: PrimaryButton(
-                  enabled: true,
-                  color: colors.primary,
-                  text: "subscribe".tr(),
-                  onPressed: () async {
-                    setState(() => loading = true);
-                    final response = await getStripeProductsFunctions();
-                    setState(() => loading = false);
 
-                    final Map<String, dynamic> data = Map<String, dynamic>.from(response.data);
-                    List<StripeProduct> products = (data["data"] as List? ?? [])
-                        .map((e) => StripeProduct.fromMap(Map<String, dynamic>.from(e)))
-                        .toList();
-                    products.sort((a,b) => a.name.compareTo(b.name));
-
-                    if (!context.mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SubscriptionPaywall(
-                          products: products
-                      ))
-                    );
-                  },
-                ),
-              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0,vertical: 5),
               child: Text("general.yourAppointments".tr(), style: TextStyle(color: colors.textColor, fontWeight: FontWeight.bold, fontSize: 18),),
             ),
             body
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget activeProgress(StripeSubscription sub){
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-
-    int monthlyQuota = sub.monthlyQuota;
-
-    DateTime now = DateTime.now();
-    String nowMonthKey = dateTimeToQuotaString(now);
-    int usedQuota = sub.usedQuota[nowMonthKey] ?? 0;
-    double percentNow = usedQuota / monthlyQuota;
-
-    DateTime nextMonth = Jiffy.now().add(months: 1).dateTime;
-    String nextMonthKey = dateTimeToQuotaString(nextMonth);
-    int usedQuotaNextMonth = sub.usedQuota[nextMonthKey] ?? 0;
-    double percentNextMonth = usedQuotaNextMonth / monthlyQuota;
-
-    Map<String,dynamic> design = getDesignBySubStatus(sub.status);
-
-    return GestureDetector(
-      onTap: () async {
-        try {
-          setState(() => loading = true);
-          final response = await createSubscriptionManagementSessionFunctions.call({});
-          setState(() => loading = false);
-          Map<String, dynamic> data = Map<String, dynamic>.from(response.data);
-          if (data['status'] == 'success') {
-            String url = data['url'];
-
-            if (await canLaunchUrlString(url) && mounted) {
-              launchUrlString(
-                url,
-                mode: LaunchMode.externalApplication,
-              );
-            } else {
-              throw 'Could not launch $url';
-            }
-          }
-        } catch (e) {
-          if (kDebugMode) {
-            print(e);
-          }
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: colors.buttonColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: percentNextMonth == 1 || percentNow == 1 ? Colors.deepOrange : colors.primary,
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  sub.productName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: colors.textColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  CupertinoIcons.pencil,
-                  color: colors.textColor,size: 17.5,
-                )
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  now.month.toString().padLeft(2, "0"),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textColor,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: LinearPercentIndicator(
-                    padding: EdgeInsets.zero,
-                    barRadius: const Radius.circular(20),
-                    lineHeight: 10.0,
-                    percent: percentNow,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.15),
-                    progressColor: percentNow == 1 ? Colors.deepOrange : colors.primary,
-                  ),
-                ),
-                SizedBox(width: 5,),
-                Text(
-                  usedQuota.toString(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textColor,
-                  ),
-                ),
-                Text(
-                  sub.status == "start_next_month" ? " / 0" : " / $monthlyQuota",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: colors.textColor.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  nextMonth.month.toString().padLeft(2, "0"),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textColor,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: LinearPercentIndicator(
-                    padding: EdgeInsets.zero,
-                    barRadius: const Radius.circular(20),
-                    lineHeight: 10.0,
-                    percent: percentNextMonth,
-                    backgroundColor: Colors.grey.withValues(alpha: 0.15),
-                    progressColor: percentNextMonth == 1 ? Colors.deepOrange : colors.primary,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  usedQuotaNextMonth.toString(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textColor,
-                  ),
-                ),
-                Text(
-                  " / $monthlyQuota",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: colors.textColor.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: design["color"].withValues(alpha: 0.4)
-              ),
-              child: Text(
-                design["name"],
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: design["color"])
-              ),
-            )
           ],
         ),
       ),
@@ -700,21 +476,6 @@ class _CustomerBookingsState extends State<CustomerBookings> {
                           ],
                         ),
                       ],
-                    if(app.status != null)
-                      ...[
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(25),
-                            color: getColorByStatus(app.status!).withValues(alpha: 0.4)
-                          ),
-                          child: Text(
-                            app.status!.tr(),
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: getColorByStatus(app.status!))
-                          ),
-                        )
-                      ]
                   ],
                 ),
               ),

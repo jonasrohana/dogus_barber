@@ -40,7 +40,7 @@ ColorTheme mainThemeDark = ColorTheme(
   isDarkTheme: true,
   backgroundColor: const Color(0xff101010),
   buttonColor: const Color(0xff1D1D1D),
-  primary: const Color(0xff0A986A),
+  primary: Colors.orange,
   secondary: const Color(0xff353535),
   textColor: Colors.white,
   primaryText: Colors.white,
