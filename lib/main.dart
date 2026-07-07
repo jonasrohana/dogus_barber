@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: UserController()),
         ChangeNotifierProvider.value(value: BookingsController())
       ],
-      child: Builder( // to use provider here, we need a builder
+      child: Builder(
         builder: (context) {
           ColorTheme colors = Provider.of<UserController>(context).getColors;
           return MaterialApp(

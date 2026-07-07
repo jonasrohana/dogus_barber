@@ -480,7 +480,6 @@ class _ManageCalendarState extends State<ManageCalendar> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0))
             ),
             onPressed: () async {
-              String uid = FirebaseAuth.instance.currentUser!.uid;
               await FirebaseFirestore.instance
                 .collection("vendors").doc(vendor.id)
                 .collection("employees").doc(selectedEmployeeId)

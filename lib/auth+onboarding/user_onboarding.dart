@@ -74,7 +74,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
     // upload user profile to firestore
     UserProfile up = UserProfile(id: authUser.uid, name: name.text.trim(), imageUrl: imageUrl,
       email: authUser.email!, phoneNr: phoneNr.text, disabledBy: [], verifiedBy: [],
-      unverifiedBy: [fixedVendorId], vendorId: fixedVendorId, platform: platform, signInMethod: signInMethod, noShow: []);
+      unverifiedBy: [fixedVendorId], vendorId: fixedVendorId, platform: platform, signInMethod: signInMethod);
 
     // set language, token and signIn
     Map<String,dynamic> map = up.toMap();

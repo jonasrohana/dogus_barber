@@ -18,6 +18,7 @@ import '../../../utils/functions.dart';
 import '../../../utils/models.dart';
 import '../../../utils/public_holidays.dart';
 import '../../chat/chat_detail.dart';
+import 'booking_sheet.dart';
 
 class AppointmentsTab extends StatefulWidget {
   const AppointmentsTab({super.key});
@@ -621,16 +622,6 @@ class _AppointmentRowState extends State<AppointmentRow> {
                           ],
                         ),
                       ],
-                    if(appUser != null && appUser!.noShow.isNotEmpty)
-                      ...[
-                        const SizedBox(height: 8),
-                        for(String noShower in appUser!.noShow)
-                          Text(
-                            "- No-Show vermerkt am $noShower",
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: CupertinoColors.destructiveRed),
-                            maxLines: 1,
-                          ),
-                      ]
                   ],
                 ),
               ),
@@ -668,26 +659,6 @@ class _AppointmentRowState extends State<AppointmentRow> {
                           enabled: (app.phoneNr ?? "").isNotEmpty,
                           onPressed: () => launchUrlString("tel://${app.phoneNr!}")
                         ),
-                        if(appUser != null)
-                          ActionSheetAction(
-                            icon: Ionicons.pencil_outline,
-                            name: "No-Show eintragen",
-                            enabled: app.userId.isNotEmpty && !isFutureDate(app.date),
-                            onPressed: () {
-                              addNoShowFunctions.call({ "userId": app.userId, "date": app.date });
-                              setState(() => appUser!.noShow.add(app.date));
-                            }
-                          ),
-                        if(appUser != null && appUser!.noShow.isNotEmpty)
-                          ActionSheetAction(
-                            icon: Ionicons.alert_outline,
-                            destructive: true,
-                            name: "No-Shows löschen",
-                            onPressed: () {
-                              deleteNoShowFunctions.call({ "userId": app.userId });
-                              setState(() => appUser!.noShow.clear());
-                            }
-                          ),
                         ActionSheetAction(
                           icon: Ionicons.lock_closed_outline,
                           destructive: true,
@@ -899,184 +870,6 @@ class _FreeAppointmentsState extends State<FreeAppointments> {
           ),
         ),
       )).toList(),
-    );
-  }
-
-}
-
-class BookingSheet extends StatefulWidget {
-
-  final String employeeId;
-  final DateTime selected;
-  final TimeSlot slot;
-
-  const BookingSheet({super.key, required this.selected, required this.slot, required this.employeeId});
-
-  @override
-  State<BookingSheet> createState() => _BookingSheetState();
-}
-
-class _BookingSheetState extends State<BookingSheet> {
-
-  TextEditingController nameTf = TextEditingController();
-  TextEditingController serviceTf = TextEditingController();
-  bool isSubmitted = false;
-
-  bool get valid => validateName(nameTf.text) == null;
-
-  @override
-  Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.buttonColor,
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  height: 5,
-                  width: 45,
-                  decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(15)
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Center(
-                child: Text(
-                  "booking.bookAppointment".tr(),
-                  style: TextStyle(
-                      fontSize: 18,
-                      color: colors.textColor,
-                      fontWeight: FontWeight.bold
-                  ),
-                ),
-              ),
-              const SizedBox(height: 25),
-              Center(
-                child: Text(
-                  firestoreString(widget.selected),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: colors.textColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Center(
-                child: Text(
-                  "${timeToString(toTime(widget.slot.start))} - ${timeToString(toTime(widget.slot.end))}",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: colors.textColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 25),
-              buildTf(nameTf, "booking.customerName".tr(), validateName(nameTf.text)),
-              const SizedBox(height: 15),
-              buildTf(serviceTf, "booking.serviceOptional".tr(), null),
-              const SizedBox(height: 20),
-              Center(
-                child: SizedBox(
-                  height: 55,
-                  width: double.maxFinite,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-                    ),
-                    onPressed: () async {
-                      setState(() => isSubmitted = true);
-                      if(!valid) return;
-
-                      Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
-                      String uid = FirebaseAuth.instance.currentUser!.uid;
-
-                      final vendorRef = FirebaseFirestore.instance
-                          .collection("vendors").doc(vendor.id)
-                          .collection("employees").doc(widget.employeeId);
-                      final privateRef = vendorRef.collection("privateAppointments").doc();
-
-                      Appointment app = Appointment(id: privateRef.id, date: firestoreString(widget.selected), userId: "",
-                          startTime: widget.slot.start, endTime: widget.slot.end, employeeId: widget.employeeId, vendorId: vendor.id);
-
-                      // write termin to public and private collection
-                      await vendorRef.collection("appointments").doc(privateRef.id).set(app.toMap());
-                      app.name = nameTf.text;
-                      app.service = serviceTf.text;
-                      await privateRef.set(app.toMap());
-
-                      if(!mounted) return;
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      "booking.book".tr(),
-                      style: TextStyle(
-                          fontSize: 15,
-                          color: valid ? colors.primaryText : Colors.grey,
-                          fontWeight: FontWeight.w600
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildTf(TextEditingController controller, String label, String? errorText) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    return TextField(
-      textCapitalization: TextCapitalization.sentences,
-      cursorColor: colors.textColor,
-      keyboardType: TextInputType.name,
-      textInputAction: controller == serviceTf ? TextInputAction.done : TextInputAction.next,
-      controller: controller,
-      autofocus: false,
-      onChanged: (value) => setState(() {}),
-      style: TextStyle(color: colors.textColor),
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide.none
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: colors.textColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-          borderSide: BorderSide(
-            color: colors.textColor.withValues(alpha: 0.2),
-            width: 1,
-          ),
-        ),
-        filled: true,
-        labelStyle: TextStyle(color: colors.textColor.withValues(alpha: 0.5)),
-        labelText: label,
-        fillColor: colors.textColor.withValues(alpha: 0.05),
-        errorText: isSubmitted ? errorText : null,
-        errorStyle: const TextStyle(
-          fontSize: 12,
-          color: CupertinoColors.destructiveRed,
-        )
-      )
     );
   }
 

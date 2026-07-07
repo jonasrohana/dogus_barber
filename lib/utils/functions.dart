@@ -574,3 +574,46 @@ bool isAtLeast24HoursBefore(DateTime date, double startTime) {
   // Check if the difference is at least 24 hours
   return targetDateTime.difference(now).inHours >= 24;
 }
+
+String doubleToTimeString(double hourDecimal) {
+  // Separate hour and fractional part
+  int hour = hourDecimal.floor();
+  double fraction = hourDecimal - hour;
+
+  // Convert fraction to minutes
+  int minutes = (fraction * 60).round();
+
+  // Format as "HH:MM"
+  final hourStr = hour.toString().padLeft(2, '0');
+  final minStr = minutes.toString().padLeft(2, '0');
+  return '$hourStr:$minStr';
+}
+
+String decimalHoursToString(double decimalHours) {
+  // 1) Extract integer hours
+  int hours = decimalHours.floor();
+
+  // 2) Compute minutes
+  double fraction = decimalHours - hours;
+  int minutes = (fraction * 60).round();
+
+  // 3) Build result string
+  if (hours > 0 && minutes > 0) {
+    // e.g. "1 hour and 15 min"
+    return '$hours hour${hours == 1 ? '' : 's'} and $minutes min';
+  } else if (hours > 0 && minutes == 0) {
+    // e.g. "1 hour" or "2 hours"
+    return '$hours hour${hours == 1 ? '' : 's'}';
+  } else {
+    // e.g. "45 min"
+    return '$minutes min';
+  }
+}
+
+double getPrice(List<Service> chosenServices){
+  double price = 0;
+  for(var i in chosenServices){
+    price += i.price;
+  }
+  return price;
+}

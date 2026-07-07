@@ -97,7 +97,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
       .collection("employees").doc(selectedEmployee!.id)
       .collection("privateAppointments").doc().id;
 
-    BookAppointmentParams params = BookAppointmentParams(vendorId: vendor.id, price: getPrice,
+    BookAppointmentParams params = BookAppointmentParams(vendorId: vendor.id, price: getPrice(chosenServices),
       date: firestoreString(selectedDate), id: id, startTime: selectedTime!.start, service: serviceString,
       endTime: selectedTime!.end, name: user.name, phoneNr: user.phoneNr, colors: colors,
       employeeId: selectedEmployee!.id);
@@ -105,13 +105,10 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
     setState(() => loading = true);
     try {
 
-      final response = await bookAppointmentWithPaymentFunctions.call(params.toMap());
+      final response = await bookAppointmentFunctions.call(params.toMap());
+      print(response);
+      String result = Map<String, dynamic>.from(response.data)["result"];
       setState(() => loading = false);
-
-      // read and handle response
-      final parsedResponse = Map<String, dynamic>.from(response.data);
-      String result = parsedResponse["result"];
-
 
       // Handling the response
       if(!mounted)  return;
@@ -125,6 +122,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
         Navigator.pop(context);
       }
       else if(result == "Error: Transaction failure"){
+        print(result);
         await showDialog(
           context: context,
           builder: (BuildContext context) =>  ShowDialogToDismiss(
@@ -135,6 +133,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
         );
       }
       else {
+        print(result);
         controller.animateToPage(2, duration: const Duration(milliseconds: 300), curve: Curves.linear);
         await showDialog(
           context: context,
@@ -148,6 +147,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
       }
     }
     catch (e) {
+      print(e);
       setState(() => loading = false);
       if(!mounted)return;
       await showDialog(
@@ -197,14 +197,6 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
     selectedDate = date;
     selectedTime = null;
     setStream();
-  }
-
-  double get getPrice {
-    double price = 0;
-    for(var i in chosenServices){
-      price += i.price;
-    }
-    return price;
   }
 
   int get getDuration {
@@ -587,7 +579,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                doubleToEuroString(getPrice),
+                                doubleToEuroString(getPrice(chosenServices)),
                                 style: TextStyle(
                                     color: colors.textColor.withValues(alpha: 0.6),
                                     fontSize: 15,
@@ -1082,6 +1074,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
               }
             }
             else {
+              print("Hier)");
               bookAppointment();
             }
           },

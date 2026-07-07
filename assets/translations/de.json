@@ -387,6 +387,9 @@
     "active": "Aktiv",
     "save_percent": "Spare {}€",
     "subscribe": "Abo abschließen"
-  }
-
+  },
+  "addAppointment": "Termin eintragen",
+  "selectCustomer": "Kunden auswählen",
+  "selectService": "Dienstleistung auswählen",
+  "terminInfo": "Termininformation"
 }

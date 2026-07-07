@@ -14,6 +14,7 @@ import 'package:dogus_barber/utils/widgets.dart';
 import '../../controller+api/user_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/models.dart';
+import 'bookings_tab/appointment2d.dart';
 import 'bookings_tab/appointments.dart';
 
 class VendorPage extends StatefulWidget {
@@ -134,6 +135,8 @@ class _VendorPageState extends State<VendorPage> {
     return FadeIndexedStack(
       index: tabIndex,
       children: [
+        if(isAdmin)
+          const AppointmentsTab2D(),
         const AppointmentsTab(),
         const ChatOverview(),
         if(isAdmin)
@@ -152,7 +155,8 @@ class _VendorPageState extends State<VendorPage> {
     // no services -> no work times -> show badge
     bool showConfigureBadge = emp.services.isEmpty || emp.workTimes.every((e) => e.isEmpty);
     bool isAdmin = vendor.admins.contains(uid);
-    int profileIndex = vendor.admins.contains(uid) ? 3 : 2;
+    int profileIndex = isAdmin ? 4 : 2;
+    int chatIndex = isAdmin? 2 : 1;
     bool showSubscriptionBadge = !vendor.active;
     return SizedBox(
       height: Platform.isIOS ? 85 : 70,
@@ -169,6 +173,20 @@ class _VendorPageState extends State<VendorPage> {
         unselectedItemColor: colors.textColor.withValues(alpha: 0.3),
         selectedItemColor: colors.textColor,
         items: [
+          if(isAdmin)
+            BottomNavigationBarItem(
+                label: "appointmentsAll",
+                icon: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Icon(
+                      tabIndex == 1 ? Ionicons.apps : Ionicons.apps_outline,
+                      size: 25,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                )
+            ),
           BottomNavigationBarItem(
             label: "appointments",
             icon: Column(
@@ -188,7 +206,7 @@ class _VendorPageState extends State<VendorPage> {
               children: [
                 const SizedBox(height: 10),
                 Icon(
-                  tabIndex == 1 ? Ionicons.chatbubbles : Ionicons.chatbubbles_outline,
+                  tabIndex == chatIndex ? Ionicons.chatbubbles : Ionicons.chatbubbles_outline,
                   size: 25,
                 ),
                 SizedBox(height: showChatBadge ? 4 : 10),

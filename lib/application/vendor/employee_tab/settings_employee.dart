@@ -45,6 +45,8 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
     ColorTheme colors = Provider.of<UserController>(context).getColors;
     String uid = FirebaseAuth.instance.currentUser!.uid;
     Employee emp = Provider.of<UserController>(context).getEmployeeById(uid)!;
+    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    bool isAdmin = vendor.admins.contains(uid);
     return LoadingStack(
       loading: loading,
       child: SafeArea(
@@ -103,14 +105,15 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
                   MaterialPageRoute(builder: (context) => const ManageHolidays()),
                 ),
               ),
-              // SettingsMenu(
-              //   icon: Ionicons.book_outline,
-              //   text: "booking.fixedAppointments".tr(),
-              //   onPressed: () => Navigator.push(
-              //     context,
-              //     MaterialPageRoute(builder: (context) => const ManageFixedAppointments()),
-              //   ),
-              // ),
+              if(isAdmin)
+                SettingsMenu(
+                  icon: Ionicons.book_outline,
+                  text: "booking.fixedAppointments".tr(),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ManageFixedAppointments()),
+                  ),
+                ),
               SettingsMenu(
                 isDestructive: true,
                 icon: Ionicons.log_out_outline,

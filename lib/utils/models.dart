@@ -289,7 +289,6 @@ class UserProfile {
   String signInMethod;
 
   DateTime? lastSignIn;
-  List<String> noShow;
 
   UserProfile({
     required this.id,
@@ -305,7 +304,6 @@ class UserProfile {
     required this.signInMethod,
     this.lastSignIn,
     this.waitingList,
-    required this.noShow
   });
 
   Map<String, dynamic> toMap() {
@@ -324,7 +322,6 @@ class UserProfile {
       'lastSignIn': DateTime.now(),
       if(waitingList != null)
         'waitingDates': waitingList,
-      'noShow': noShow
     };
   }
 
@@ -342,8 +339,7 @@ class UserProfile {
       platform: map['platform'] ?? "",
       signInMethod: map['signInMethod'] ?? "",
       lastSignIn: map.containsKey('lastSignIn') ? map['lastSignIn'].toDate() : null,
-      waitingList: map.containsKey("waitingDates") ? List.from(map["waitingDates"]) : [],
-      noShow: map.containsKey("noShow") ? List.from(map["noShow"]) : []
+      waitingList: map.containsKey("waitingDates") ? List.from(map["waitingDates"]) : []
     );
   }
 }

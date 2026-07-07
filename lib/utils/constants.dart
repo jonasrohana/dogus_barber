@@ -3,7 +3,9 @@ import 'package:cloud_functions/cloud_functions.dart';
 // constant values
 const fixedVendorId = "H1d9tejlBogXJ1r3k49a";
 const languages = ["de"];
-const privacyUrl = "https://zthemaster.de/datenschutz";
+const privacyUrl = "https://serdardilmen.com/datenschutz/";
+const imprintUrl = "https://serdardilmen.com/impressum/";
+const contactUrl = "https://serdardilmen.com/#kontakt";
 const userPlaceholderImage = "https://firebasestorage.googleapis.com/v0/b/artletics-22b28.appspot.com/o/user-placeholder.png?alt=media&token=3a39fe46-498c-44cc-8292-4fddab85b3c8";
 
 
@@ -34,11 +36,5 @@ final HttpsCallable deleteNoShowFunctions = FirebaseFunctions.instanceFor(region
     .httpsCallable("deleteNoShow");
 
 // stripe calls
-final HttpsCallable bookAppointmentWithPaymentFunctions = FirebaseFunctions.instanceFor(region: "europe-west3")
-    .httpsCallable("bookAppointmentWithPayment");
-final HttpsCallable getStripeProductsFunctions = FirebaseFunctions.instanceFor(region: "europe-west3")
-    .httpsCallable("getStripeProducts");
-final HttpsCallable createCheckoutSessionFunctions = FirebaseFunctions.instanceFor(region: "europe-west3")
-    .httpsCallable("createCheckoutSession");
-final HttpsCallable createSubscriptionManagementSessionFunctions = FirebaseFunctions.instanceFor(region: "europe-west3")
-    .httpsCallable("createSubscriptionManagementSession");
+final HttpsCallable bookAppointmentFunctions = FirebaseFunctions.instanceFor(region: "europe-west3")
+    .httpsCallable("bookAppointment");

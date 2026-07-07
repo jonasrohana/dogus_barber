@@ -199,8 +199,8 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
           SettingsMenu(
             icon: Ionicons.mail_outline,
             text: "general.support".tr(),
-            onPressed: () async {
-              const url = 'mailto:info@zthemaster.de';
+            onPressed: () async  {
+              const url = contactUrl;
               if (await canLaunchUrlString(url)) {
                 await launchUrlString(url);
               } else {
@@ -228,10 +228,14 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
           SettingsMenu(
             icon: Ionicons.people_outline,
             text: "general.imprint".tr(),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const Imprint()),
-            ),
+            onPressed: () async  {
+              const url = imprintUrl;
+              if (await canLaunchUrlString(url)) {
+                await launchUrlString(url);
+              } else {
+                throw 'Could not launch $url';
+              }
+            },
           ),
           SettingsMenu(
             isDestructive: true,

@@ -16,6 +16,7 @@ import '../../../controller+api/user_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 import '../../chat/chat_detail.dart';
+import 'package:scroll_to_index/scroll_to_index.dart';
 
 class ManageUser extends StatefulWidget {
   const ManageUser({super.key});
@@ -39,7 +40,6 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   List<UserProfile> missingVerification = [];
   List<UserProfile> allUser = [];
   List<UserProfile> blocked = [];
-  List<FixedAppointment> fixedAppointments = [];
 
   Future<void> fetchOpenVerificationUser() async {
     Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
@@ -80,20 +80,9 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> fetchFixedAppointments() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
-    var query = await FirebaseFirestore.instance
-      .collection('vendors').doc(vendor.id)
-      .collection('employees').doc(uid)
-      .collection('fixedAppointments')
-      .get();
-    fixedAppointments = query.docs.map((e) => FixedAppointment.fromMap(e.data())).toList();
-  }
-
   void onPageChange(int i) {
     if(i == 1 && loading[1]) {
       fetchAllUser();
-      fetchFixedAppointments();
     }
     if(i == 2 && loading[2]) {
       fetchBlockedUser();
@@ -280,6 +269,11 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   Widget get allUserList {
     Vendor vendor = Provider.of<UserController>(context).getVendor!;
     ColorTheme colors = Provider.of<UserController>(context).getColors;
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+    bool isAdmin = vendor.admins.contains(uid);
+    bool fixedApps = vendor.employees.any(
+          (emp) => emp.workTimes.any((day) => day.isNotEmpty),
+    );
     if(loading[1]) {
       return Column(
         children: [
@@ -378,25 +372,22 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
                                     enabled: up.phoneNr.isNotEmpty,
                                     onPressed: () => launchUrlString("tel://${up.phoneNr}")
                                 ),
-                                // if(emp.workTimes.any((element) => element.isNotEmpty))
-                                //   ActionSheetAction(
-                                //       icon: Ionicons.calendar_number_outline,
-                                //       name: "actions.bookFixedApp".tr(),
-                                //       enabled: up.id.isNotEmpty,
-                                //       onPressed: () async {
-                                //         final retVal = await showModalBottomSheet(
-                                //             isScrollControlled: true,
-                                //             backgroundColor: colors.buttonColor,
-                                //             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
-                                //             context: context,
-                                //             builder: (BuildContext context) => BookingFixedAppointmentSheet(
-                                //                 up: up, existingAppointments: fixedAppointments)
-                                //         );
-                                //         if(retVal != null && retVal is FixedAppointment) {
-                                //           fixedAppointments.add(retVal);
-                                //         }
-                                //       }
-                                //   ),
+                                if(isAdmin && fixedApps)
+                                  ActionSheetAction(
+                                      icon: Ionicons.calendar_number_outline,
+                                      name: "actions.bookFixedApp".tr(),
+                                      enabled: up.id.isNotEmpty,
+                                      onPressed: () async {
+                                        await showModalBottomSheet(
+                                            isScrollControlled: true,
+                                            backgroundColor: colors.buttonColor,
+                                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+                                            context: context,
+                                            builder: (BuildContext context) => BookingFixedAppointmentSheet(
+                                                up: up)
+                                        );
+                                      }
+                                  ),
                                 ActionSheetAction(
                                     icon: Ionicons.close_outline,
                                     name: "Nutzer sperren",
@@ -623,95 +614,188 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
 }
 
 class BookingFixedAppointmentSheet extends StatefulWidget {
-
   final UserProfile up;
-  final List<FixedAppointment> existingAppointments;
 
-  const BookingFixedAppointmentSheet({super.key, required this.up, required this.existingAppointments});
+  const BookingFixedAppointmentSheet({
+    super.key,
+    required this.up,
+  });
 
   @override
-  State<BookingFixedAppointmentSheet> createState() => _BookingFixedAppointmentSheetState();
+  State<BookingFixedAppointmentSheet> createState() =>
+      _BookingFixedAppointmentSheetState();
 }
 
 class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSheet> {
-
   TextEditingController name = TextEditingController();
   TextEditingController service = TextEditingController();
 
   String uid = FirebaseAuth.instance.currentUser!.uid;
 
-  Map<int,String> days = {};
-  late int selectedDay;
-  TimeRangeResult timeRange = TimeRangeResult(const TimeOfDay(hour: 10, minute: 0), const TimeOfDay(hour: 11, minute: 0));
+  late String selectedEmployeeId;
+  AutoScrollController employeeController =
+  AutoScrollController(axis: Axis.horizontal);
 
-  void init() {
+  List<FixedAppointment> fixedAppointments = [];
+  bool loadingFixedAppointments = true;
+
+  Map<int, String> days = {};
+  int? selectedDay;
+
+  TimeRangeResult timeRange = TimeRangeResult(
+    const TimeOfDay(hour: 10, minute: 0),
+    const TimeOfDay(hour: 11, minute: 0),
+  );
+
+  bool get isAdmin {
+    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    return vendor.admins.contains(uid);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
     name.text = widget.up.name;
 
-    // let user select only from available days
-    Employee emp = Provider.of<UserController>(context, listen: false).getEmployeeById(uid)!;
+    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+
+    selectedEmployeeId = vendor.employees.firstWhere((emp) => emp.workTimes.any((day) => day.isNotEmpty)).id;
+
+    setEmployee();
+  }
+
+  void setEmployee() {
+    Employee emp = Provider.of<UserController>(context, listen: false)
+        .getEmployeeById(selectedEmployeeId)!;
+
+    days.clear();
+
     int i = 1;
-    for(String day in emp.workTimes) {
-      if(day.isNotEmpty) {
+    for (String day in emp.workTimes) {
+      if (day.isNotEmpty) {
         days[i] = "weekdays.weekday_$i".tr();
       }
       i++;
     }
-    selectedDay = days.keys.first;
+
+    selectedDay = days.isNotEmpty ? days.keys.first : null;
+    loadingFixedAppointments = true;
+
+    fetchFixedAppointments();
+
+    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    int index = vendor.employees.map((e) => e.id).toList().indexOf(selectedEmployeeId);
+
+    if (index >= 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !employeeController.hasClients) return;
+        employeeController.scrollToIndex(
+          index,
+          preferPosition: AutoScrollPosition.middle,
+        );
+      });
+    }
+  }
+
+  Future<void> fetchFixedAppointments() async {
+    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    final String empId = selectedEmployeeId;
+
+    var query = await FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(vendor.id)
+        .collection('employees')
+        .doc(empId)
+        .collection('fixedAppointments')
+        .get();
+
+    if (!mounted || selectedEmployeeId != empId) return;
+
+    setState(() {
+      fixedAppointments =
+          query.docs.map((e) => FixedAppointment.fromMap(e.data())).toList();
+      loadingFixedAppointments = false;
+    });
   }
 
   Future<void> bookFixedAppointment() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
-    var newDoc = FirebaseFirestore.instance
-        .collection('vendors').doc(vendor.id)
-        .collection('employees').doc(uid)
-        .collection('fixedAppointments').doc();
-    FixedAppointment newAppointment = FixedAppointment(id: newDoc.id, weekDay: selectedDay-1, startTime: toDouble(timeRange.start),
-        endTime: toDouble(timeRange.end), userId: widget.up.id, phoneNr: widget.up.phoneNr, name: name.text, description: service.text);
+    if (selectedDay == null || loadingFixedAppointments) return;
 
-    bool collision = doesAppointmentCollide(widget.existingAppointments, newAppointment);
-    bool sameDay = doesUserHaveFixedAppointmentOnThisDay(widget.existingAppointments, newAppointment);
+    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+
+    var newDoc = FirebaseFirestore.instance
+        .collection('vendors')
+        .doc(vendor.id)
+        .collection('employees')
+        .doc(selectedEmployeeId)
+        .collection('fixedAppointments')
+        .doc();
+
+    FixedAppointment newAppointment = FixedAppointment(
+      id: newDoc.id,
+      weekDay: selectedDay! - 1,
+      startTime: toDouble(timeRange.start),
+      endTime: toDouble(timeRange.end),
+      userId: widget.up.id,
+      phoneNr: widget.up.phoneNr,
+      name: name.text,
+      description: service.text,
+    );
+
+    bool collision = doesAppointmentCollide(fixedAppointments, newAppointment);
+    bool sameDay =
+    doesUserHaveFixedAppointmentOnThisDay(fixedAppointments, newAppointment);
+
     if (collision) {
-     showDialog(
-        context: context,
-        builder: (BuildContext context) =>
-          AnimationDialog(text: "user.timeNotFree".tr(), isSuccess: false)
-      );
-    }
-    else if(sameDay){
       showDialog(
         context: context,
         builder: (BuildContext context) =>
-          AnimationDialog(text: "user.sameDayFixed".tr(), isSuccess: false)
+            AnimationDialog(text: "user.timeNotFree".tr(), isSuccess: false),
       );
-    }
-    else {
+    } else if (sameDay) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) =>
+            AnimationDialog(text: "user.sameDayFixed".tr(), isSuccess: false),
+      );
+    } else {
       await newDoc.set(newAppointment.toMap());
-      if(!mounted) return;
+
+      if (!mounted) return;
+
       await showDialog(
-          context: context,
-          builder: (BuildContext context) =>
-              AnimationDialog(text: "booking.success".tr(), isSuccess: true)
+        context: context,
+        builder: (BuildContext context) =>
+            AnimationDialog(text: "booking.success".tr(), isSuccess: true),
       );
-      if(!mounted) return;
+
+      if (!mounted) return;
       Navigator.pop(context, newAppointment);
     }
   }
 
   @override
-  void initState() {
-    init();
-    super.initState();
+  void dispose() {
+    employeeController.dispose();
+    name.dispose();
+    service.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     ColorTheme colors = Provider.of<UserController>(context).getColors;
+
     return SingleChildScrollView(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         decoration: BoxDecoration(
           color: colors.buttonColor,
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
         ),
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: SafeArea(
@@ -725,7 +809,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
                   width: 45,
                   decoration: BoxDecoration(
                     color: Colors.grey.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(15)
+                    borderRadius: BorderRadius.circular(15),
                   ),
                 ),
               ),
@@ -736,134 +820,93 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
                   style: TextStyle(
                     fontSize: 18,
                     color: colors.textColor,
-                    fontWeight: FontWeight.bold
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
+
+              if (isAdmin) ...[
+                const SizedBox(height: 25),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    "general.selectEmployee".tr(),
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colors.textColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                employeeSelection,
+              ],
+
               const SizedBox(height: 25),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  "weekdays.selectDay".tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: colors.textColor,
-                    fontWeight: FontWeight.w600,
+
+              if (loadingFixedAppointments)
+                Center(
+                  child: CupertinoActivityIndicator(color: colors.textColor),
+                )
+              else if (days.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    "general.closedVendor".tr(),
+                    style: TextStyle(
+                      color: colors.textColor.withValues(alpha: 0.7),
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: List.generate(days.keys.length, (index) {
-                    int key = days.keys.toList()[index];
-                    return GestureDetector(
-                      onTap: () {
-                        if(selectedDay != key){
-                          selectedDay = key;
-                        }
-                        setState(() {});
-                      },
-                      child: Container(
-                        clipBehavior: Clip.antiAlias,
-                        padding: const EdgeInsets.symmetric(horizontal: 10,vertical: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: selectedDay == key ? colors.textColor : colors.buttonColor,
-                        ),
-                        child: SizedBox(
-                          width: 22,
-                          child: Center(
-                            child: Text(
-                              days[key]!.substring(0,2),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: selectedDay == key ? colors.backgroundColor : colors.textColor.withValues(alpha: 0.7)
-                              )
+                )
+              else ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "weekdays.selectDay".tr(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: colors.textColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  daySelection,
+                  const SizedBox(height: 6),
+                  timeRangeSelection,
+                  const SizedBox(height: 25),
+                  disabledNameTf,
+                  const SizedBox(height: 15),
+                  serviceTf,
+                  const SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Center(
+                      child: SizedBox(
+                        height: 55,
+                        width: double.maxFinite,
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                          ),
+                          onPressed: bookFixedAppointment,
+                          child: Text(
+                            "booking.book".tr(),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: colors.primaryText,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ),
-                    );
-                  })
-                ),
-              ),
-              const SizedBox(height: 6),
-              TimeRange(
-                fromTitle: Text(
-                  "general.from".tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: colors.textColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                toTitle: Text(
-                  "general.until".tr(),
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: colors.textColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                titlePadding: 20,
-                textStyle: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.normal,
-                  color: colors.textColor,
-                ),
-                activeTextStyle: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.normal,
-                  color: colors.backgroundColor,
-                ),
-                borderColor: colors.textColor,
-                activeBorderColor: colors.secondary,
-                backgroundColor: Colors.transparent,
-                activeBackgroundColor: colors.textColor,
-                firstTime: const TimeOfDay(hour: 6, minute: 00),
-                lastTime: const TimeOfDay(hour: 22, minute: 00),
-                initialRange: timeRange,
-                timeStep: 15,
-                timeBlock: 15,
-                onRangeCompleted: (range) {
-                  if(range != null) {
-                    setState(() => timeRange = range);
-                  }
-                },
-              ),
-              const SizedBox(height: 25),
-              disabledNameTf,
-              const SizedBox(height: 15),
-              serviceTf,
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Center(
-                  child: SizedBox(
-                    height: 55,
-                    width: double.maxFinite,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-                      ),
-                      onPressed: bookFixedAppointment,
-                      child: Text(
-                        "booking.book".tr(),
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: colors.primaryText,
-                          fontWeight: FontWeight.w600
-                        ),
-                      ),
                     ),
                   ),
-                ),
-              ),
+                ],
             ],
           ),
         ),
@@ -871,8 +914,176 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
     );
   }
 
+  Widget get employeeSelection {
+    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+
+    if (vendor.employees.length < 2 || !isAdmin) {
+      return Container();
+    }
+
+    return SizedBox(
+      height: 55,
+      child: ListView.separated(
+        controller: employeeController,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        itemCount: vendor.employees.length,
+        separatorBuilder: (BuildContext context, int index) =>
+        const SizedBox(width: 10),
+        itemBuilder: (BuildContext context, int index) {
+          Employee emp = vendor.employees[index];
+          bool selected = emp.id == selectedEmployeeId;
+          bool hasWorkTimes = emp.workTimes.any((day) => day.isNotEmpty);
+
+          return AutoScrollTag(
+            key: ValueKey(index),
+            controller: employeeController,
+            index: index,
+            child: GestureDetector(
+              onTap: !hasWorkTimes
+                  ? null
+                  : () {
+                if (selected) return;
+                selectedEmployeeId = emp.id;
+                setEmployee();
+              },
+              child: Opacity(
+                opacity: hasWorkTimes ? 1 : 0.4,
+                child: Container(
+                  padding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: selected ? colors.textColor : colors.buttonColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: colors.textColor.withValues(alpha: 0.2),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      ProfileImageCircle(emp.imageUrl, 35),
+                      const SizedBox(width: 12),
+                      Text(
+                        emp.name,
+                        style: TextStyle(
+                          color: selected
+                              ? colors.backgroundColor
+                              : colors.textColor,
+                          fontSize: 15,
+                          fontWeight:
+                          selected ? FontWeight.w600 : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget get daySelection {
+    ColorTheme colors = Provider.of<UserController>(context).getColors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: List.generate(days.keys.length, (index) {
+          int key = days.keys.toList()[index];
+
+          return GestureDetector(
+            onTap: () {
+              if (selectedDay != key) {
+                selectedDay = key;
+              }
+              setState(() {});
+            },
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: selectedDay == key ? colors.textColor : colors.buttonColor,
+              ),
+              child: SizedBox(
+                width: 22,
+                child: Center(
+                  child: Text(
+                    days[key]!.substring(0, 2),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: selectedDay == key
+                          ? colors.backgroundColor
+                          : colors.textColor.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget get timeRangeSelection {
+    ColorTheme colors = Provider.of<UserController>(context).getColors;
+
+    return TimeRange(
+      fromTitle: Text(
+        "general.from".tr(),
+        style: TextStyle(
+          fontSize: 15,
+          color: colors.textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      toTitle: Text(
+        "general.until".tr(),
+        style: TextStyle(
+          fontSize: 15,
+          color: colors.textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      titlePadding: 20,
+      textStyle: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.normal,
+        color: colors.textColor,
+      ),
+      activeTextStyle: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.normal,
+        color: colors.backgroundColor,
+      ),
+      borderColor: colors.textColor,
+      activeBorderColor: colors.secondary,
+      backgroundColor: Colors.transparent,
+      activeBackgroundColor: colors.textColor,
+      firstTime: const TimeOfDay(hour: 6, minute: 00),
+      lastTime: const TimeOfDay(hour: 22, minute: 00),
+      initialRange: timeRange,
+      timeStep: 15,
+      timeBlock: 15,
+      onRangeCompleted: (range) {
+        if (range != null) {
+          setState(() => timeRange = range);
+        }
+      },
+    );
+  }
+
   Widget get serviceTf {
     ColorTheme colors = Provider.of<UserController>(context).getColors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: TextField(
@@ -886,7 +1097,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
         decoration: InputDecoration(
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide.none
+            borderSide: BorderSide.none,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
@@ -906,31 +1117,35 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
           labelStyle: TextStyle(color: colors.textColor.withValues(alpha: 0.5)),
           labelText: "booking.serviceOptional".tr(),
           fillColor: colors.textColor.withValues(alpha: 0.05),
-        )
+        ),
       ),
     );
   }
 
   Widget get disabledNameTf {
     ColorTheme colors = Provider.of<UserController>(context).getColors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: TextField(
         controller: name,
         autofocus: false,
         enabled: false,
-        style: TextStyle(color: colors.textColor.withValues(alpha: 0.7), fontSize: 15),
+        style: TextStyle(
+          color: colors.textColor.withValues(alpha: 0.7),
+          fontSize: 15,
+        ),
         decoration: InputDecoration(
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide(
               color: colors.secondary.withValues(alpha: 0.3),
-              width: 0.5
-            )
+              width: 0.5,
+            ),
           ),
           filled: true,
           labelStyle: TextStyle(color: colors.textColor.withValues(alpha: 0.5)),
-          labelText:  "booking.customerName".tr(),
+          labelText: "booking.customerName".tr(),
           fillColor: colors.textColor.withValues(alpha: 0.05),
         ),
       ),
