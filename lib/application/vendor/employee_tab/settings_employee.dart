@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -11,18 +12,17 @@ import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:dogus_barber/application/vendor/employee_tab/manage_calendar.dart';
 import 'package:dogus_barber/application/vendor/employee_tab/manage_fixed_appointments.dart';
 import 'package:dogus_barber/application/vendor/employee_tab/manage_holidays.dart';
 import 'package:dogus_barber/application/vendor/employee_tab/manage_services.dart';
 import 'package:dogus_barber/application/vendor/employee_tab/edit_employee.dart';
-import 'package:dogus_barber/utils/imprint.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../controller+api/user_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/models.dart';
 import '../../../utils/widgets.dart';
+import 'manage_calendar.dart';
 import 'manage_user.dart';
 
 class EmployeeSettings extends StatefulWidget {
@@ -159,10 +159,36 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
                 ),
               ),
               SettingsMenu(
+                icon: Ionicons.language_outline,
+                text: "language".tr(),
+                onPressed: () => showModalBottomSheet(
+                  backgroundColor: colors.buttonColor,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+                  context: context,
+                  builder: (BuildContext context) => ActionSheet(
+                    actions: List.generate(3, (index) => ActionSheetAction(
+                        leading: SizedBox(width: 38, height: 25, child: Image.asset("assets/languages/${languages[index]}.png", fit: BoxFit.fill)),
+                        name: languages[index].tr(),
+                        onPressed: () async {
+                          context.setLocale(Locale(languages[index]));
+                          Navigator.pop(context);
+                          await FirebaseFirestore.instance
+                              .collection("user").doc(userId)
+                              .update({ "language": languages[index] });
+
+                          if(!mounted) return;
+                          RestartWidget.restartApp(context);
+                        }
+                    )),
+                  ),
+                ),
+              ),
+              SettingsMenu(
                 icon: Ionicons.mail_outline,
                 text: "general.support".tr(),
-                onPressed: () async {
-                  const url = 'mailto:info@zthemaster.de';
+                onPressed: () async  {
+                  const url = contactUrl;
                   if (await canLaunchUrlString(url)) {
                     await launchUrlString(url);
                   } else {
@@ -190,10 +216,14 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
               SettingsMenu(
                 icon: Ionicons.people_outline,
                 text: "general.imprint".tr(),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Imprint()),
-                ),
+                onPressed: () async  {
+                  const url = imprintUrl;
+                  if (await canLaunchUrlString(url)) {
+                    await launchUrlString(url);
+                  } else {
+                    throw 'Could not launch $url';
+                  }
+                },
               ),
               SettingsMenu(
                 isDestructive: true,

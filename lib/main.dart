@@ -38,7 +38,7 @@ Future<void> main() async {
   ]);
 
   runApp(EasyLocalization(
-    supportedLocales: const [Locale('de')],
+    supportedLocales: const [Locale('de'),Locale('en'),Locale('tr') ],
     path: 'assets/translations',
     fallbackLocale: const Locale('de'),
     child: const RestartWidget(child: MyApp())

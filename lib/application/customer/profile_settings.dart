@@ -15,7 +15,6 @@ import '../../../utils/constants.dart';
 import '../../../utils/models.dart';
 import '../../../utils/widgets.dart';
 import '../../auth+onboarding/reauth_dialog.dart';
-import '../../utils/imprint.dart';
 
 class CustomerSettingsProfile extends StatefulWidget {
 
@@ -194,6 +193,32 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
                     fontWeight: FontWeight.w600,
                     fontSize: 18
                 )
+            ),
+          ),
+          SettingsMenu(
+            icon: Ionicons.language_outline,
+            text: "language".tr(),
+            onPressed: () => showModalBottomSheet(
+              backgroundColor: colors.buttonColor,
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+              context: context,
+              builder: (BuildContext context) => ActionSheet(
+                actions: List.generate(3, (index) => ActionSheetAction(
+                    leading: SizedBox(width: 38, height: 25, child: Image.asset("assets/languages/${languages[index]}.png", fit: BoxFit.fill)),
+                    name: languages[index].tr(),
+                    onPressed: () async {
+                      context.setLocale(Locale(languages[index]));
+                      Navigator.pop(context);
+                      await FirebaseFirestore.instance
+                          .collection("user").doc(userId)
+                          .update({ "language": languages[index] });
+
+                      if(!mounted) return;
+                      RestartWidget.restartApp(context);
+                    }
+                )),
+              ),
             ),
           ),
           SettingsMenu(

@@ -17,6 +17,7 @@ class ColorTheme {
   Color textColor;
   Color primaryText;
   Color secondaryText;
+  Color mainBackgroundColor;
 
   ColorTheme({
     required this.id,
@@ -27,7 +28,8 @@ class ColorTheme {
     required this.secondary,
     required this.textColor,
     required this.primaryText,
-    required this.secondaryText
+    required this.secondaryText,
+    required this.mainBackgroundColor
   });
 }
 
@@ -44,5 +46,6 @@ ColorTheme mainThemeDark = ColorTheme(
   secondary: const Color(0xff353535),
   textColor: Colors.white,
   primaryText: Colors.white,
-  secondaryText: Colors.white
+  secondaryText: Colors.white,
+  mainBackgroundColor: const Color(0xff04122b)
 );

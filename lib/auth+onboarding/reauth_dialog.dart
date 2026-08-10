@@ -71,11 +71,10 @@ class ReAuthDialogState extends State<ReAuthDialog> {
             children: [
               Center(
                 child: Image.asset(
-                  colors.isDarkTheme ? 'assets/logo/logo-font-dark.png' : 'assets/logo/logo-font-light.png',
-                  height: 40,
+                  'assets/logo/logo-transparent.png',
+                  height: 130,
                 ),
               ),
-              const SizedBox(height: 15),
               Center(
                 child: Text(
                   'auth.reauthenticate'.tr(),

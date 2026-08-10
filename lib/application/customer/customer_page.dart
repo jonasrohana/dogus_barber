@@ -397,7 +397,7 @@ class _CustomerBookingsState extends State<CustomerBookings> {
 
     return ListView.separated(
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 12.0) + const EdgeInsets.only(bottom: 120),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0) + const EdgeInsets.only(bottom: 120, top: 5),
       shrinkWrap: true,
       itemCount: booked.length,
       separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 12),
