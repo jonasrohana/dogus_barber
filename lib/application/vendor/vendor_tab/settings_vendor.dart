@@ -9,6 +9,7 @@ import 'package:dogus_barber/application/vendor/vendor_tab/manage_employees.dart
 import 'package:dogus_barber/application/vendor/vendor_tab/manage_opening_times.dart';
 import 'package:dogus_barber/application/vendor/vendor_tab/push_newsletter.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 import '../../../utils/widgets.dart';
@@ -27,8 +28,8 @@ class _VendorSettingsState extends State<VendorSettings> {
 
   @override
   Widget build(BuildContext context) {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SafeArea(
       child: LoadingStack(
         loading: loading,
@@ -88,8 +89,8 @@ class _VendorSettingsState extends State<VendorSettings> {
   }
 
   Widget get shopBox {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     return Container(
       width: double.maxFinite,
       decoration: BoxDecoration(

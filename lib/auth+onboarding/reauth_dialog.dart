@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../controller+api/user_controller.dart';
+import '../controller+api/vendor_controller.dart';
 import '../utils/colors.dart';
 
 class ReAuthDialog extends StatefulWidget {
@@ -52,7 +52,7 @@ class ReAuthDialogState extends State<ReAuthDialog> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Dialog(
       backgroundColor: colors.backgroundColor,
       shape: RoundedRectangleBorder(

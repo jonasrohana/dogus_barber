@@ -12,6 +12,7 @@ import 'package:dogus_barber/utils/models.dart';
 import '../../controller+api/user_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/widgets.dart';
+import '../controller+api/vendor_controller.dart';
 
 class EmployeeInvitation extends StatefulWidget {
 
@@ -61,7 +62,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -84,7 +85,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(vendor == null) {
       return Column(
         children: [
@@ -115,7 +116,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
   }
 
   Widget pageTitle(String text) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.only(left: 15),
       alignment: Alignment.centerLeft,
@@ -131,7 +132,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
   }
 
   Widget get summary {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       child: Column(
@@ -250,7 +251,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
     if(vendor == null) {
       return Container();
     }
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     double width = 120;
     return Center(
       child: Container(
@@ -275,7 +276,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
   }
 
   Widget displayText(String label, String text, bool showMapsIcon) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       child: Row(
@@ -315,7 +316,7 @@ class _EmployeeInvitationState extends State<EmployeeInvitation> {
   }
 
   Widget get buttonRow {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.backgroundColor,

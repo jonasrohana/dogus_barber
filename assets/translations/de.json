@@ -391,5 +391,9 @@
   "addAppointment": "Termin eintragen",
   "selectCustomer": "Kunden auswählen",
   "selectService": "Dienstleistung auswählen",
-  "terminInfo": "Termininformation"
+  "terminInfo": "Termininformation",
+  "employeeServices": "Mitarbeiter und ihre Dienstleistungen",
+  "loginSignUp": "Anmelden/Registrieren",
+  "accountInfo": "Um Termine zu buchen oder dein Profil zu verwalten, musst du mit deinem Nutzeraccount angemeldet sein",
+  "expect": "Das erwartet dich:"
 }

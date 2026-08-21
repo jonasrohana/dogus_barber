@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:dogus_barber/utils/validator.dart';
 import 'dart:io';
 import '../controller+api/user_controller.dart';
+import '../controller+api/vendor_controller.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 import '../utils/models.dart';
@@ -95,7 +96,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
   }
 
   Future<void> pickImage() async {
-    ColorTheme colors = Provider.of<UserController>(context, listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context, listen: false).getColors;
     FocusScope.of(context).unfocus();
     setState(() => uploading = true);
     final pickedFile =
@@ -163,7 +164,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -186,7 +187,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -227,7 +228,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
   }
 
   Widget get imagePicker {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     double width = 120;
     late Widget child;
     if(image == null) {
@@ -283,7 +284,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
   }
 
   Widget get nameTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: nameFocus,
       cursorColor: colors.textColor,
@@ -326,7 +327,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
   }
 
   Widget get phoneTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: phoneFocus,
       cursorColor: colors.textColor,
@@ -370,7 +371,7 @@ class _UserOnboardingState extends State<UserOnboarding> {
   }
 
   Widget get submitButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SizedBox(
       width: double.maxFinite,
       height: 55,

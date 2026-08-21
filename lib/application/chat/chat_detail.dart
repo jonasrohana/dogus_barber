@@ -9,6 +9,7 @@ import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/models.dart';
 import '../../utils/widgets.dart';
@@ -18,8 +19,8 @@ Future<void> navigateToChat(context, String otherUserId, bool isVendor, {bool do
   if(FirebaseAuth.instance.currentUser == null) return;
 
   String uid = FirebaseAuth.instance.currentUser!.uid;
-  Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
-  Employee? emp = Provider.of<UserController>(context, listen: false).getEmployeeById(isVendor ? uid : otherUserId);
+  Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
+  Employee? emp = Provider.of<VendorController>(context, listen: false).getEmployeeById(isVendor ? uid : otherUserId);
   if(emp == null) {
     return;
   }
@@ -207,7 +208,7 @@ class _ChatDetailState extends State<ChatDetail> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       backgroundColor: colors.backgroundColor,
       appBar: appBar,
@@ -216,7 +217,7 @@ class _ChatDetailState extends State<ChatDetail> {
   }
 
   PreferredSizeWidget get appBar {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     String uid = FirebaseAuth.instance.currentUser!.uid;
     ChatUser otherUser = room.chatUser.firstWhere((element) => element.userId != uid);
 
@@ -258,7 +259,7 @@ class _ChatDetailState extends State<ChatDetail> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     UserProfile? up = Provider.of<UserController>(context).getUserProfile;
     final user = types.User(
       id: up!.id,

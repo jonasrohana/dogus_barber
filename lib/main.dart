@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -21,6 +22,7 @@ import 'package:dogus_barber/utils/models.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import 'auth+onboarding/login_register.dart';
 import 'controller+api/user_controller.dart';
+import 'controller+api/vendor_controller.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -53,11 +55,12 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: UserController()),
-        ChangeNotifierProvider.value(value: BookingsController())
+        ChangeNotifierProvider.value(value: BookingsController()),
+        ChangeNotifierProvider.value(value: VendorController())
       ],
       child: Builder(
         builder: (context) {
-          ColorTheme colors = Provider.of<UserController>(context).getColors;
+          ColorTheme colors = Provider.of<VendorController>(context).getColors;
           return MaterialApp(
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
@@ -158,15 +161,19 @@ class _BasePageState extends State<BasePage> {
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser;
     UserProfile? profile = Provider.of<UserController>(context).getUserProfile;
-    Vendor? vendor = Provider.of<UserController>(context).getVendor;
+    Vendor? vendor = Provider.of<VendorController>(context).getVendor;
 
-    // not signed in -> show login screen
-    if(user == null) {
-      return const LoginScreen();
+    if(vendor == null) {
+      return Column(
+        children: [
+          const SizedBox(height: 10),
+          CupertinoActivityIndicator()
+        ],
+      );
     }
 
     // user onboarding, required for user and vendor -> afterwards selection
-    if(profile == null) {
+    if(user != null && profile == null) {
       return const UserOnboarding();
     }
 
@@ -175,12 +182,8 @@ class _BasePageState extends State<BasePage> {
       return EmployeeInvitation(vendorId: invitationVendorId!);
     }
 
-    if(vendor == null) {
-      return Container();
-    }
-
     // has vendor and is customer -> no employee has same id
-    if(profile.vendorId.isNotEmpty && vendor.employees.every((element) => element.id != user.uid)) {
+    if(user == null || vendor.employees.every((element) => element.id != user.uid)) {
       return CustomerPage(key: Key(vendor.id));
     }
 

@@ -10,6 +10,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import 'package:text_scroll/text_scroll.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/functions.dart';
 import '../../../utils/models.dart';
@@ -41,7 +42,7 @@ class _BookingSheetState extends State<BookingSheet> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
           color: colors.buttonColor,
@@ -110,7 +111,7 @@ class _BookingSheetState extends State<BookingSheet> {
   }
 
   Widget get userRow {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(user == null) {
       return Row(
         children: [
@@ -181,7 +182,7 @@ class _BookingSheetState extends State<BookingSheet> {
   }
 
   Widget get serviceRow {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(services.isEmpty) {
       return Row(
         children: [
@@ -274,7 +275,7 @@ class _BookingSheetState extends State<BookingSheet> {
   }
 
   Widget buildTf(TextEditingController controller, String label, String? errorText) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
         textCapitalization: TextCapitalization.sentences,
         cursorColor: colors.textColor,
@@ -318,7 +319,7 @@ class _BookingSheetState extends State<BookingSheet> {
   }
 
   Widget get bookingButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Center(
       child: SizedBox(
         height: 55,
@@ -332,7 +333,7 @@ class _BookingSheetState extends State<BookingSheet> {
             setState(() => isSubmitted = true);
             if(!valid) return;
 
-            Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+            Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
 
             final vendorRef = FirebaseFirestore.instance
                 .collection("vendors").doc(vendor.id)
@@ -429,7 +430,7 @@ class _ChooseUserState extends State<ChooseUser> {
 
   Future<void> fetchAllUser() async {
     setState(() =>_isRequesting = true );
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     QuerySnapshot query = await FirebaseFirestore.instance
         .collection('user')
         .where('verifiedBy', arrayContains: vendor.id)
@@ -446,7 +447,7 @@ class _ChooseUserState extends State<ChooseUser> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -469,7 +470,7 @@ class _ChooseUserState extends State<ChooseUser> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(allUser.isEmpty && _isRequesting) {
       return Column(
         children: [
@@ -552,7 +553,7 @@ class _ChooseUserState extends State<ChooseUser> {
   }
 
   Widget get searchBar {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: TextField(
@@ -601,7 +602,7 @@ class _ChooseUserState extends State<ChooseUser> {
   }
 
   Widget get emptyState {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     late String text;
     text = "user.noUser".tr();
@@ -650,7 +651,7 @@ class _ChooseServicesState extends State<ChooseServices> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -679,8 +680,8 @@ class _ChooseServicesState extends State<ChooseServices> {
   }
 
   Widget get body {
-    Employee emp = Provider.of<UserController>(context).getEmployeeById(widget.empId)!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Employee emp = Provider.of<VendorController>(context).getEmployeeById(widget.empId)!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       margin: const EdgeInsets.only(top: 0),
       width: double.maxFinite,

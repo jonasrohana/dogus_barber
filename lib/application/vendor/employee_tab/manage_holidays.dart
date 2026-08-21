@@ -12,6 +12,7 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:dogus_barber/utils/functions.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 
@@ -34,7 +35,7 @@ class _ManageHolidaysState extends State<ManageHolidays> with TickerProviderStat
   String uid = FirebaseAuth.instance.currentUser!.uid;
   
   void setHolidayStream()  {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     holidayStream = FirebaseFirestore.instance
       .collection("vendors").doc(vendor.id)
       .collection("employees").doc(selectedEmployeeId)
@@ -55,8 +56,8 @@ class _ManageHolidaysState extends State<ManageHolidays> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Scaffold(
       extendBodyBehindAppBar: false,
@@ -93,8 +94,8 @@ class _ManageHolidaysState extends State<ManageHolidays> with TickerProviderStat
   }
 
   Widget get body {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Container(
       margin: const EdgeInsets.only(top: 0),
@@ -238,8 +239,8 @@ class _ManageHolidaysState extends State<ManageHolidays> with TickerProviderStat
   }
 
   Widget get employeeSelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     bool isAdmin = vendor.admins.contains(uid);
     if(vendor.employees.length < 2 || !isAdmin) {
       return Container();
@@ -296,7 +297,7 @@ class _ManageHolidaysState extends State<ManageHolidays> with TickerProviderStat
   }
 
   Widget get emptyState {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Center(
       child: Column(
         children: [
@@ -343,7 +344,7 @@ class _CreateHolidaySheetState extends State<CreateHolidaySheet> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
@@ -464,7 +465,7 @@ class _CreateHolidaySheetState extends State<CreateHolidaySheet> {
                     }
 
                     setState(() => loading = true);
-                    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+                    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
                     String uid = FirebaseAuth.instance.currentUser!.uid;
 
                     var mainDocRef = FirebaseFirestore.instance

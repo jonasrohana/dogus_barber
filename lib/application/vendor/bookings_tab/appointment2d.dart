@@ -13,6 +13,7 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:text_scroll/text_scroll.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/functions.dart';
@@ -46,7 +47,7 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
   final ScrollController controller2 = ScrollController();
 
   void setStream() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     dayStream = FirebaseFirestore.instance
         .collectionGroup("privateAppointments")
         .where("vendorId", isEqualTo: vendor.id)
@@ -68,8 +69,8 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     List<TimeOfDay> timeOfDays = getOpeningTimes(selectedDate, vendor.openingTimes);
     List<Widget> timeSlots = [];
 
@@ -241,7 +242,7 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
     required List<Appointment> appointments,
     required BuildContext contextChat
   }) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     List<Widget> columnWidgets = [];
 
     double lastEnd = earliest;
@@ -346,7 +347,7 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
                                   buttonTextOne: "general.yes".tr(),
                                   buttonTextTwo: "general.no".tr(),
                                   buttonOne: () {
-                                    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+                                    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
                                     blockUser.call({
                                       'userId': appt.userId,
                                       'vendorId': vendor.id
@@ -473,7 +474,7 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
   }
 
   Future<void> showDatePicker() async {
-    ColorTheme colors = Provider.of<UserController>(context,listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context,listen: false).getColors;
     DateTime initialDate = selectedDate;
     final retVal = await showModalBottomSheet(
       backgroundColor: colors.buttonColor,
@@ -492,7 +493,7 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
 
 
   Widget get dateWidgets {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.fromLTRB(5, 0, 5, 20),
@@ -543,7 +544,7 @@ class _AppointmentsTab2DState extends State<AppointmentsTab2D> {
   }
 
   List<Widget> getWeekWidgets(List<DateTime> dates) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     List<Widget> widgetList = [];
     for (var d in dates) {
       bool isSelected = d.day == selectedDate.day && d.month == selectedDate.month && d.year == selectedDate.year;
@@ -602,7 +603,7 @@ class _AppointmentSummaryState extends State<AppointmentSummary> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -639,7 +640,7 @@ class _AppointmentSummaryState extends State<AppointmentSummary> {
   }
 
   Widget get summary {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
       child: Column(
@@ -680,8 +681,8 @@ class _AppointmentSummaryState extends State<AppointmentSummary> {
   }
 
   Widget displayText(String label, String text, bool showImage) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Employee? emp = Provider.of<UserController>(context, listen: false).getEmployeeById(appointment.employeeId!);
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Employee? emp = Provider.of<VendorController>(context, listen: false).getEmployeeById(appointment.employeeId!);
     Widget imageWidget = Container();
     if(showImage) {
       imageWidget =  ClipOval(
@@ -740,7 +741,7 @@ class _AppointmentSummaryState extends State<AppointmentSummary> {
   }
 
   Widget pageTitle(String text) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.only(left: 15),
       alignment: Alignment.centerLeft,
@@ -756,8 +757,8 @@ class _AppointmentSummaryState extends State<AppointmentSummary> {
   }
 
   Widget get submitButton {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
           color: colors.backgroundColor,

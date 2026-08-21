@@ -11,6 +11,7 @@ import 'package:dogus_barber/utils/constants.dart';
 import 'package:dogus_barber/utils/validator.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 import '../employee_tab/manage_calendar.dart';
@@ -47,7 +48,7 @@ class _ManageEmployeesState extends State<ManageEmployees> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -115,8 +116,8 @@ class _ManageEmployeesState extends State<ManageEmployees> with TickerProviderSt
   }
 
   Widget get activeEmployeeList {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: vendor.employees.length,
@@ -256,8 +257,8 @@ class _ManageEmployeesState extends State<ManageEmployees> with TickerProviderSt
   }
 
   Widget get invitedEmployeeList {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(vendor.invited.isEmpty) {
       return emptyState;
     }
@@ -310,7 +311,7 @@ class _ManageEmployeesState extends State<ManageEmployees> with TickerProviderSt
   }
 
   Widget get emptyState {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Center(
       child: Column(
         children: [
@@ -354,7 +355,7 @@ class _AddEmployeeSheetState extends State<AddEmployeeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.buttonColor,
@@ -419,7 +420,7 @@ class _AddEmployeeSheetState extends State<AddEmployeeSheet> {
                       setState(() => isSubmitted = true);
                       if(!valid) return;
 
-                      Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+                      Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
                       if(vendor.invited.contains(mail.text)){
                         if(!mounted) return;
                         await showDialog(
@@ -466,7 +467,7 @@ class _AddEmployeeSheetState extends State<AddEmployeeSheet> {
   }
 
   Widget get mailTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       cursorColor: colors.textColor,
       keyboardType: TextInputType.emailAddress,

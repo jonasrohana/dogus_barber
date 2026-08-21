@@ -13,6 +13,7 @@ import 'package:dogus_barber/controller+api/google_places_api.dart';
 import 'package:dogus_barber/utils/models.dart';
 import 'package:dogus_barber/utils/validator.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/widgets.dart';
 
@@ -50,7 +51,7 @@ class _EditVendorState extends State<EditVendor> {
   bool get showButton => nodes.every((element) => element.hasFocus == false);
 
   Future<void> pickImage() async {
-    ColorTheme colors = Provider.of<UserController>(context, listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context, listen: false).getColors;
     FocusScope.of(context).unfocus();
     setState(() => uploading = true);
     final pickedFile =
@@ -100,7 +101,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   void prefill() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     name.text = vendor.name;
     phoneNr.text = vendor.phoneNr;
     image = DynamicImage(isFile: false, url: vendor.imageUrl);
@@ -128,7 +129,7 @@ class _EditVendorState extends State<EditVendor> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -151,7 +152,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -197,7 +198,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget get imagePicker {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     double width = 120;
     late Widget child;
     if(image.url != null) {
@@ -243,7 +244,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget get nameTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: nameFocus,
       textCapitalization: TextCapitalization.sentences,
@@ -287,7 +288,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget get phoneTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: phoneFocus,
       cursorColor: colors.textColor,
@@ -331,7 +332,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget get cityAutocompleteTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       cursorColor: colors.textColor,
       focusNode: placesApi.locationFocus,
@@ -379,7 +380,7 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget disabledTf(TextEditingController controller, String labelText) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       controller: controller,
       autofocus: false,
@@ -403,8 +404,8 @@ class _EditVendorState extends State<EditVendor> {
   }
 
   Widget get saveButton {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.backgroundColor,

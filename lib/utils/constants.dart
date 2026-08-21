@@ -2,7 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 // constant values
 const fixedVendorId = "H1d9tejlBogXJ1r3k49a";
-const languages = ["de","en", "tr"];
+const languages = ["de","en"];
 const privacyUrl = "https://serdardilmen.com/datenschutz/";
 const imprintUrl = "https://serdardilmen.com/impressum/";
 const contactUrl = "https://serdardilmen.com/#kontakt";

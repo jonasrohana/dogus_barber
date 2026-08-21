@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:dogus_barber/utils/models.dart';
 import 'package:dogus_barber/utils/validator.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/widgets.dart';
 
@@ -48,7 +49,7 @@ class _EditEmployeeState extends State<EditEmployee> {
   bool get showButton => nodes.every((element) => element.hasFocus == false);
 
   Future<void> pickImage() async {
-    ColorTheme colors = Provider.of<UserController>(context, listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context, listen: false).getColors;
     FocusScope.of(context).unfocus();
     setState(() => uploading = true);
     final pickedFile =
@@ -100,7 +101,7 @@ class _EditEmployeeState extends State<EditEmployee> {
   }
 
   void prefill() {
-    Employee emp = Provider.of<UserController>(context, listen: false).getEmployeeById(uid)!;
+    Employee emp = Provider.of<VendorController>(context, listen: false).getEmployeeById(uid)!;
     name.text = emp.name;
     phoneNr.text = emp.phoneNr;
     image = DynamicImage(isFile: false, url: emp.imageUrl);
@@ -123,7 +124,7 @@ class _EditEmployeeState extends State<EditEmployee> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -146,7 +147,7 @@ class _EditEmployeeState extends State<EditEmployee> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -186,7 +187,7 @@ class _EditEmployeeState extends State<EditEmployee> {
   }
 
   Widget get imagePicker {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     double width = 120;
     late Widget child;
     if(image.url != null) {
@@ -232,7 +233,7 @@ class _EditEmployeeState extends State<EditEmployee> {
   }
 
   Widget get nameTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: nameFocus,
       textCapitalization: TextCapitalization.sentences,
@@ -276,7 +277,7 @@ class _EditEmployeeState extends State<EditEmployee> {
   }
 
   Widget get phoneTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: phoneFocus,
       cursorColor: colors.textColor,
@@ -320,8 +321,8 @@ class _EditEmployeeState extends State<EditEmployee> {
   }
 
   Widget get saveButton {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
           color: colors.backgroundColor,

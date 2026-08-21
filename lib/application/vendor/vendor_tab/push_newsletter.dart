@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/widgets.dart';
 
@@ -26,7 +27,7 @@ class SendPushNewsletterState extends State<SendPushNewsletter> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -74,7 +75,7 @@ class SendPushNewsletterState extends State<SendPushNewsletter> {
       String labelText,
       bool isMultiline
       ) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -128,7 +129,7 @@ class SendPushNewsletterState extends State<SendPushNewsletter> {
   }
 
   Widget get submitButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: PrimaryButton(

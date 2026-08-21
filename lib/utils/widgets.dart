@@ -11,9 +11,78 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:text_scroll/text_scroll.dart';
 import 'package:time_range/time_range.dart';
 import 'package:dogus_barber/utils/constants.dart';
+import '../auth+onboarding/login_register.dart';
 import '../controller+api/user_controller.dart';
+import '../controller+api/vendor_controller.dart';
 import 'colors.dart';
 import 'functions.dart';
+import 'models.dart';
+
+
+class LoginBanner extends StatelessWidget {
+  const LoginBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    UserProfile? profile = Provider.of<UserController>(context).getUserProfile;
+    if(profile != null) {
+      return Container();
+    }
+
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+      child: Column(
+        children: [
+          Text(
+            "accountInfo".tr(),
+            style: TextStyle(
+              fontSize: 14,
+              color: colors.textColor.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: SizedBox(
+              height: 55,
+              width: double.maxFinite,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+                ),
+                onPressed: () => showModalBottomSheet(
+                  backgroundColor: colors.buttonColor,
+                  isScrollControlled: true,
+                  clipBehavior: Clip.antiAlias,
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+                  context: context,
+                  builder: (BuildContext context) => Container(
+                    decoration: BoxDecoration(borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+                    height: MediaQuery.of(context).size.height*0.75,
+                    child: LoginScreen())
+                ),
+                child:
+                Text(
+                  "loginSignUp".tr(),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600
+                  ),
+                ),
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
 
 // restart widget, root of whole app for language change
 class RestartWidget extends StatefulWidget {
@@ -89,7 +158,7 @@ class TimeRangeSheetState extends State<TimeRangeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.buttonColor,
@@ -209,7 +278,7 @@ class TimeRangeSheetState extends State<TimeRangeSheet> {
   }
 
   Widget get closedSwitchTile {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Theme(
       data: ThemeData().copyWith(highlightColor: Colors.transparent),
       child: SwitchListTile.adaptive(
@@ -262,7 +331,7 @@ class _DatePickerSheetState extends State<DatePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20) + EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       decoration: BoxDecoration(
@@ -360,7 +429,7 @@ class _DateRangePickerSheetState extends State<DateRangePickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20) + EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       decoration: BoxDecoration(
@@ -481,7 +550,7 @@ class _AnimationDialogState extends State<AnimationDialog> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Dialog(
       backgroundColor: colors.buttonColor,
       shape: RoundedRectangleBorder(
@@ -553,7 +622,7 @@ class NativeDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Dialog(
       backgroundColor: colors.buttonColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
@@ -662,7 +731,7 @@ class ShowDialogToDismiss extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Dialog(
       backgroundColor: colors.buttonColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0),),
@@ -742,7 +811,7 @@ class ForceUpdateDialog extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Dialog(
       backgroundColor: colors.buttonColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0),),
@@ -1123,7 +1192,7 @@ class ThemedSvgImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     String directory = colors.isDarkTheme ? "undraw_dark" : "undraw_light";
     return SvgPicture.asset(
       "assets/$directory/$assetName.svg",
@@ -1169,7 +1238,7 @@ class SettingsMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     Color color = isDestructive ? CupertinoColors.destructiveRed : colors.textColor;
     if(!enabled) {
       color = color.withValues(alpha: 0.7);
@@ -1233,7 +1302,7 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SizedBox(
       width: double.maxFinite,
       height: 55,
@@ -1273,7 +1342,7 @@ class CustomTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TabBar(
       controller: controller,
       onTap: function,
@@ -1321,7 +1390,7 @@ class ActionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16) + EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       decoration: BoxDecoration(

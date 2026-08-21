@@ -15,6 +15,7 @@ import '../../../utils/constants.dart';
 import '../../../utils/models.dart';
 import '../../../utils/widgets.dart';
 import '../../auth+onboarding/reauth_dialog.dart';
+import '../../controller+api/vendor_controller.dart';
 
 class CustomerSettingsProfile extends StatefulWidget {
 
@@ -27,7 +28,6 @@ class CustomerSettingsProfile extends StatefulWidget {
 class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
 
   bool loading = false;
-  String userId = FirebaseAuth.instance.currentUser!.uid;
 
   Future<bool> reauthenticate() async {
     User user = FirebaseAuth.instance.currentUser!;
@@ -71,6 +71,7 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
     );
 
     if(retVal && retVal is bool && retVal) {
+      String userId = FirebaseAuth.instance.currentUser!.uid;
       setState(() => loading = true);
       await deleteTermine();
 
@@ -93,6 +94,7 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
   }
 
   Future<void> deleteTermine() async {
+    String userId = FirebaseAuth.instance.currentUser!.uid;
     var query = await FirebaseFirestore.instance.collectionGroup("privateAppointments").where('userId', isEqualTo: userId).get();
     List<Appointment> allTermine = query.docs.map((doc) => Appointment.fromMap(doc.data(), doc.id)).toList();
     for(Appointment t in allTermine) {
@@ -106,7 +108,7 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return WillPopScope(
       onWillPop: () => Future.value(!loading),
       child: Stack(
@@ -149,41 +151,51 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    UserProfile? profile = Provider.of<UserController>(context).getUserProfile;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 25),
-          userBox,
-          const SizedBox(height: 6),
-          SettingsMenu(
-            isDestructive: true,
-            icon: Ionicons.log_out_outline,
-            text: "general.signOut".tr(),
-            onPressed: () async {
-              // get user and token
-              setState(() => loading = true);
-              String? token;
-              if (!kDebugMode) {
-                try {
-                  token = await FirebaseMessaging.instance.getToken();
-                } catch (e) {
-                  print('FCM token error: $e');
-                }
-              }
-              await FirebaseAuth.instance.signOut();
+          if(profile != null)
+            ...[
+              const SizedBox(height: 25),
+              userBox,
+              const SizedBox(height: 6),
+              SettingsMenu(
+                isDestructive: true,
+                icon: Ionicons.log_out_outline,
+                text: "general.signOut".tr(),
+                onPressed: () async {
+                  // get user and token
+                  String userId = FirebaseAuth.instance.currentUser!.uid;
+                  setState(() => loading = true);
+                  String? token;
+                  if (!kDebugMode) {
+                    try {
+                      token = await FirebaseMessaging.instance.getToken();
+                    } catch (e) {
+                      print('FCM token error: $e');
+                    }
+                  }
+                  await FirebaseAuth.instance.signOut();
 
-              if(!mounted) return;
-              Navigator.pop(context);
+                  if(!mounted) return;
+                  Navigator.pop(context);
 
-              if(!kDebugMode && token != null) removeToken.call({"token": token, "userId": userId});
+                  if(!kDebugMode && token != null) removeToken.call({"token": token, "userId": userId});
 
-              setState(() => loading = false);
-            },
-          ),
-          const SizedBox(height: 25),
+                  setState(() => loading = false);
+                },
+              ),
+              const SizedBox(height: 25),
+            ]
+          else
+            ...[
+              LoginBanner(),
+              const SizedBox(height: 20),
+            ],
           Padding(
             padding: const EdgeInsets.fromLTRB(10,0,0,5),
             child: Text(
@@ -205,18 +217,20 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
               context: context,
               builder: (BuildContext context) => ActionSheet(
                 actions: List.generate(3, (index) => ActionSheetAction(
-                    leading: SizedBox(width: 38, height: 25, child: Image.asset("assets/languages/${languages[index]}.png", fit: BoxFit.fill)),
-                    name: languages[index].tr(),
-                    onPressed: () async {
-                      context.setLocale(Locale(languages[index]));
-                      Navigator.pop(context);
+                  leading: SizedBox(width: 38, height: 25, child: Image.asset("assets/languages/${languages[index]}.png", fit: BoxFit.fill)),
+                  name: languages[index].tr(),
+                  onPressed: () async {
+                    context.setLocale(Locale(languages[index]));
+                    Navigator.pop(context);
+                    if(profile != null) {
+                      String userId = FirebaseAuth.instance.currentUser!.uid;
                       await FirebaseFirestore.instance
-                          .collection("user").doc(userId)
-                          .update({ "language": languages[index] });
-
-                      if(!mounted) return;
-                      RestartWidget.restartApp(context);
+                        .collection("user").doc(userId)
+                        .update({ "language": languages[index] });
                     }
+                    if(!mounted) return;
+                    RestartWidget.restartApp(context);
+                  }
                 )),
               ),
             ),
@@ -233,11 +247,6 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
               }
             },
           ),
-          // SettingsMenu(
-          //   icon: Ionicons.shield_checkmark_outline,
-          //   text: "general.termsOfUse".tr(),
-          //   onPressed: () { },
-          // ),
           SettingsMenu(
             icon: Ionicons.eye_off_outline,
             text: "general.privacy".tr(),
@@ -262,12 +271,13 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
               }
             },
           ),
-          SettingsMenu(
-            isDestructive: true,
-            icon: Ionicons.trash_outline,
-            text: "general.deleteAccount".tr(),
-            onPressed: () => deleteAction(),
-          ),
+          if(profile != null)
+            SettingsMenu(
+              isDestructive: true,
+              icon: Ionicons.trash_outline,
+              text: "general.deleteAccount".tr(),
+              onPressed: () => deleteAction(),
+            ),
           const SizedBox(height: 80)
         ],
       ),
@@ -275,7 +285,7 @@ class _CustomerSettingsProfileState extends State<CustomerSettingsProfile> {
   }
 
   Widget get userBox {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     UserProfile? user = Provider.of<UserController>(context).getUserProfile;
 
     if(user != null){

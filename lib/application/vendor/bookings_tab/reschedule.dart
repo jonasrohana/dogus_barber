@@ -1,22 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
-import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
-import '../../../utils/constants.dart';
 import '../../../utils/functions.dart';
 import '../../../utils/models.dart';
 import '../../../utils/public_holidays.dart';
 import '../../../utils/widgets.dart';
-import '../../chat/chat_detail.dart';
 
 class ChangeAppointmentsTab extends StatefulWidget {
   final Appointment app;
@@ -46,7 +42,7 @@ class _ChangeAppointmentsTabState extends State<ChangeAppointmentsTab> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -101,7 +97,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
   late DateTime selectedDate = widget.initialDate;
 
   Future<void> showDatePicker() async {
-    ColorTheme colors = Provider.of<UserController>(context,listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context,listen: false).getColors;
     DateTime initialDate = selectedDate;
     final retVal = await showModalBottomSheet(
       backgroundColor: colors.buttonColor,
@@ -127,7 +123,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
   }
 
   void setStream() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     dayStream = FirebaseFirestore.instance
         .collection("vendors").doc(vendor.id)
         .collection("employees").doc(widget.employeeId)
@@ -160,7 +156,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
   }
 
   Widget get dateWidgets {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.fromLTRB(5, 15, 5, 20),
@@ -211,7 +207,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
   }
 
   List<Widget> getWeekWidgets(List<DateTime> dates) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     List<Widget> widgetList = [];
     for (var d in dates) {
       bool isSelected = d.day == selectedDate.day && d.month == selectedDate.month && d.year == selectedDate.year;
@@ -253,9 +249,9 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
   }
 
   Widget get appointmentList {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    Employee emp = Provider.of<UserController>(context).getEmployeeById(widget.employeeId)!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    Employee emp = Provider.of<VendorController>(context).getEmployeeById(widget.employeeId)!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(isPastDue(selectedDate) && tabIndex == 1){
       return Column(
         children: [
@@ -268,7 +264,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
               'general.pastDateNoBookings'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: colors.textColor.withOpacity(0.9),
+                  color: colors.textColor.withValues(alpha: 0.9),
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   height: 1.4
@@ -290,7 +286,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
               'general.holidayDate'.tr(args: [getPublicHolidayName(selectedDate)]),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: colors.textColor.withOpacity(0.9),
+                  color: colors.textColor.withValues(alpha: 0.9),
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   height: 1.4
@@ -312,7 +308,7 @@ class _EmployeeAppointmentOverviewState extends State<EmployeeAppointmentOvervie
               'general.closedVendor'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: colors.textColor.withOpacity(0.9),
+                  color: colors.textColor.withValues(alpha: 0.9),
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   height: 1.4
@@ -367,9 +363,9 @@ class _ChangeAppointmentState extends State<ChangeAppointment> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Employee? emp = Provider.of<UserController>(context).getEmployeeById(widget.app.employeeId!);
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Employee? emp = Provider.of<VendorController>(context).getEmployeeById(widget.app.employeeId!);
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     double width = MediaQuery.of(context).size.width - 52;
     List<TimeSlot> termine = computeFreeToChangeSlots(emp, widget.appointments, widget.selected ,((widget.app.endTime-widget.app.startTime)*60).toInt(), widget.app);
     return Container(

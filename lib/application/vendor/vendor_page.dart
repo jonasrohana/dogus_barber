@@ -12,6 +12,7 @@ import 'package:dogus_barber/application/vendor/employee_tab/settings_employee.d
 import 'package:dogus_barber/application/vendor/vendor_tab/settings_vendor.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/models.dart';
 import 'bookings_tab/appointment2d.dart';
@@ -35,7 +36,7 @@ class _VendorPageState extends State<VendorPage> {
   bool showVerifyBadge = false;
 
   void initChatStream() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     String uid = FirebaseAuth.instance.currentUser!.uid;
     chatStream = FirebaseFirestore.instance
       .collection('vendors').doc(vendor.id)
@@ -48,7 +49,7 @@ class _VendorPageState extends State<VendorPage> {
   }
 
   void initVerifyUserStream() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     verifyStream = FirebaseFirestore.instance
       .collection('user')
       .where('unverifiedBy', arrayContains: vendor.id)
@@ -84,8 +85,8 @@ class _VendorPageState extends State<VendorPage> {
 
   @override
   Widget build(BuildContext context) {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Stack(
       children: <Widget>[
         Stack(
@@ -129,7 +130,7 @@ class _VendorPageState extends State<VendorPage> {
   }
 
   Widget get body {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     String uid = FirebaseAuth.instance.currentUser!.uid;
     bool isAdmin = vendor.admins.contains(uid);
     return FadeIndexedStack(
@@ -147,10 +148,10 @@ class _VendorPageState extends State<VendorPage> {
   }
 
   Widget get navBar {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     String uid = FirebaseAuth.instance.currentUser!.uid;
-    Employee emp = Provider.of<UserController>(context).getEmployeeById(uid)!;
+    Employee emp = Provider.of<VendorController>(context).getEmployeeById(uid)!;
 
     // no services -> no work times -> show badge
     bool showConfigureBadge = emp.services.isEmpty || emp.workTimes.every((e) => e.isEmpty);

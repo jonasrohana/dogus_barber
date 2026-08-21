@@ -11,6 +11,7 @@ import 'package:dogus_barber/application/vendor/employee_tab/create_edit_service
 import 'package:dogus_barber/utils/functions.dart';
 import 'package:dogus_barber/utils/models.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/widgets.dart';
 
@@ -33,9 +34,9 @@ class _ManageServicesState extends State<ManageServices> {
   AutoScrollController controller = AutoScrollController(axis: Axis.horizontal);
 
   void setEmployee() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
 
-    Employee emp = Provider.of<UserController>(context, listen: false).getEmployeeById(selectedEmployeeId)!;
+    Employee emp = Provider.of<VendorController>(context, listen: false).getEmployeeById(selectedEmployeeId)!;
     services = emp.services;
     setState(() {});
 
@@ -52,8 +53,8 @@ class _ManageServicesState extends State<ManageServices> {
 
   @override
   Widget build(BuildContext context) {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Scaffold(
       extendBodyBehindAppBar: false,
@@ -98,8 +99,8 @@ class _ManageServicesState extends State<ManageServices> {
   }
 
   Widget get body {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Container(
       margin: const EdgeInsets.only(top: 20),
@@ -249,8 +250,8 @@ class _ManageServicesState extends State<ManageServices> {
   }
 
   Widget get employeeSelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     bool isAdmin = vendor.admins.contains(uid);
     if(vendor.employees.length < 2 || !isAdmin) {
       return Container();

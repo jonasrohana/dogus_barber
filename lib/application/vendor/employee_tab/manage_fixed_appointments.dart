@@ -12,6 +12,7 @@ import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:dogus_barber/utils/functions.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 
@@ -34,13 +35,13 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
 
   bool get isAdmin {
     Vendor vendor =
-    Provider.of<UserController>(context, listen: false).getVendor!;
+    Provider.of<VendorController>(context, listen: false).getVendor!;
     return vendor.admins.contains(uid);
   }
 
   void initEmployee() {
     Vendor vendor =
-    Provider.of<UserController>(context, listen: false).getVendor!;
+    Provider.of<VendorController>(context, listen: false).getVendor!;
 
     bool currentUserIsEmployee = vendor.employees.any((e) => e.id == uid);
 
@@ -54,8 +55,7 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
   }
 
   void setFixedAppointmentsStream() {
-    Vendor vendor =
-    Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
 
     fixedAppointmentsStream = FirebaseFirestore.instance
         .collection("vendors")
@@ -73,7 +73,7 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
     setFixedAppointmentsStream();
 
     Vendor vendor =
-    Provider.of<UserController>(context, listen: false).getVendor!;
+    Provider.of<VendorController>(context, listen: false).getVendor!;
 
     int index =
     vendor.employees.map((e) => e.id).toList().indexOf(employeeId);
@@ -106,8 +106,8 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     bool admin = vendor.admins.contains(uid);
 
     return Scaffold(
@@ -148,7 +148,7 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return Container(
       margin: const EdgeInsets.only(top: 20),
@@ -262,17 +262,10 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
                                   ),
                                 );
 
-                                if (retVal != null &&
-                                    retVal is bool &&
-                                    retVal) {
+                                if (retVal != null && retVal is bool && retVal) {
                                   FirebaseFirestore.instance
-                                      .collection("vendors")
-                                      .doc(
-                                    Provider.of<UserController>(
-                                      context,
-                                      listen: false,
-                                    ).getVendor!.id,
-                                  )
+                                    .collection("vendors")
+                                    .doc(Provider.of<VendorController>(context, listen: false,).getVendor!.id,)
                                       .collection("employees")
                                       .doc(selectedEmployeeId)
                                       .collection("fixedAppointments")
@@ -310,8 +303,8 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
   }
 
   Widget get employeeSelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
 
     if (!isAdmin || vendor.employees.length < 2) {
       return Container();
@@ -373,7 +366,7 @@ class _ManageFixedAppointmentsState extends State<ManageFixedAppointments> {
   }
 
   Widget get emptyState {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return Center(
       child: Column(

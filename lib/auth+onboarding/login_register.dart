@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import '../controller+api/user_controller.dart';
+import '../controller+api/vendor_controller.dart';
 import '../utils/colors.dart';
 import '../utils/validator.dart';
 import '../utils/widgets.dart';
@@ -57,99 +58,89 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    return AnnotatedRegion(
-      value: colors.isDarkTheme ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      child: Scaffold(
-        extendBodyBehindAppBar: false,
-        backgroundColor: colors.backgroundColor,
-        body: Stack(
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    return Stack(
+      children: [
+        Stack(
           children: [
-            Stack(
-              children: [
-                Image.asset(
-                  "assets/images/background.jpeg",
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.width,
-                  fit: BoxFit.cover,
-                ),
-                Container(
-                  height: MediaQuery.of(context).size.height,
-                  decoration: BoxDecoration(
-                      color: colors.backgroundColor.withValues(alpha: 0.0)
-                  ),
-                ),
-              ],
+            Image.asset(
+              "assets/images/background.jpeg",
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              fit: BoxFit.cover,
             ),
-            body
+            Container(
+              height: MediaQuery.of(context).size.height,
+              decoration: BoxDecoration(
+                  color: colors.backgroundColor.withValues(alpha: 0.0)
+              ),
+            ),
           ],
-        )
-      ),
+        ),
+        body
+      ],
     );
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    return SafeArea(
-      bottom: false,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25),
-        child: Column(
-          children: [
-            const SizedBox(height: 50),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                height: 250,
-                alignment: Alignment.center,
-                child: Image.asset('assets/logo/logo-transparent.png'),
-              ),
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 25),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(15),
+              height: 180,
+              alignment: Alignment.center,
+              child: Image.asset('assets/logo/logo-transparent.png'),
             ),
-            buildTF(15, 5, TextInputType.emailAddress, type == LoginPageState.reset ? TextInputAction.done : TextInputAction.next, email, false, "login.email".tr(), _isSubmitted ? validateEmail(email.text) : null),
-            if(type != LoginPageState.reset)
-              buildTF(0,5, TextInputType.text, type == LoginPageState.signUp ? TextInputAction.next : TextInputAction.done, password, true, "login.password".tr(), _isSubmitted ? validatePassword(password.text) : null),
-            if(type != LoginPageState.signUp)
-              Container(
-                padding: const EdgeInsets.only(top: 10, right: 20),
-                alignment: Alignment.centerRight,
-                child: InkWell(
-                  onTap: () => setState(() => type = type == LoginPageState.login ? LoginPageState.reset :  LoginPageState.login),
-                  child: Text(
-                    type != LoginPageState.login ? "login.login".tr() : "login.forgot".tr(),
-                    style: TextStyle(
-                      color: colors.textColor,
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.w600,
-                    ),
+          ),
+          buildTF(15, 5, TextInputType.emailAddress, type == LoginPageState.reset ? TextInputAction.done : TextInputAction.next, email, false, "login.email".tr(), _isSubmitted ? validateEmail(email.text) : null),
+          if(type != LoginPageState.reset)
+            buildTF(0,5, TextInputType.text, type == LoginPageState.signUp ? TextInputAction.next : TextInputAction.done, password, true, "login.password".tr(), _isSubmitted ? validatePassword(password.text) : null),
+          if(type != LoginPageState.signUp)
+            Container(
+              padding: const EdgeInsets.only(top: 10, right: 20),
+              alignment: Alignment.centerRight,
+              child: InkWell(
+                onTap: () => setState(() => type = type == LoginPageState.login ? LoginPageState.reset :  LoginPageState.login),
+                child: Text(
+                  type != LoginPageState.login ? "login.login".tr() : "login.forgot".tr(),
+                  style: TextStyle(
+                    color: colors.textColor,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            if(type == LoginPageState.signUp)
-              const SizedBox(height: 30,),
-            const SizedBox(height: 15),
-            if(errorMessage.isNotEmpty)
-              ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 17),
-                  child: Center(child: Text(errorMessage, textAlign: TextAlign.center,style: const TextStyle(color: Colors.redAccent, fontSize: 12))),
-                ),
-                const SizedBox(height: 10),
-              ],
-            submitButton,
-            if(type != LoginPageState.reset)
-              ...[
-                signUpRow,
-              ],
-            const SizedBox(height: 20),
-          ],
-        ),
+            ),
+          if(type == LoginPageState.signUp)
+            const SizedBox(height: 30,),
+          const SizedBox(height: 15),
+          if(errorMessage.isNotEmpty)
+            ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 17),
+                child: Center(child: Text(errorMessage, textAlign: TextAlign.center,style: const TextStyle(color: Colors.redAccent, fontSize: 12))),
+              ),
+              const SizedBox(height: 10),
+            ],
+          submitButton,
+          if(type != LoginPageState.reset)
+            ...[
+              signUpRow,
+            ],
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
 
   Widget buildTF(double bottomPadding, double leftPadding, TextInputType inputType, TextInputAction inputAction,
       TextEditingController controller, bool obscure, String labelText, String? errorText) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isPw = controller == password;
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
@@ -203,7 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget get signUpRow {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.only(top: 5, bottom: 10),
       child: Row(
@@ -292,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
         try {
           await FirebaseAuth.instance.sendPasswordResetEmail(email: email.text);
           if(!mounted)  return;
-          showDialog(
+          await showDialog(
             barrierDismissible: false,
             context: context,
             builder: (BuildContext context) => AnimationDialog(
@@ -301,6 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
             )
           );
           setState(() => errorMessage = "");
+          if(mounted) Navigator.pop(context);
         } on FirebaseAuthException catch (e) {
           handleFirebaseAuthError(e.code);
         }
@@ -311,6 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
             email: email.text.trim(),
             password: password.text
           );
+          if(mounted) Navigator.pop(context);
         }
         on FirebaseAuthException catch (e) {
           handleFirebaseAuthError(e.code);
@@ -322,6 +315,7 @@ class _LoginScreenState extends State<LoginScreen> {
             email: email.text.trim(),
             password: password.text
           );
+          if(mounted) Navigator.pop(context);
         } on FirebaseAuthException catch (e) {
           handleFirebaseAuthError(e.code);
         } catch (e) {

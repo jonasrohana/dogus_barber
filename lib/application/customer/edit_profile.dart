@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:dogus_barber/utils/validator.dart';
 import 'dart:io';
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/models.dart';
 import '../../utils/widgets.dart';
@@ -94,7 +95,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   void showImageActionSheet() {
-    ColorTheme colors = Provider.of<UserController>(context, listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context, listen: false).getColors;
     UserProfile? user = Provider.of<UserController>(context, listen: false).getUserProfile;
     if (user == null) return;
     showModalBottomSheet(
@@ -124,7 +125,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> pickImage() async {
-    ColorTheme colors = Provider.of<UserController>(context, listen: false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context, listen: false).getColors;
     FocusScope.of(context).unfocus();
     setState(() => uploading = true);
     final pickedFile =
@@ -198,7 +199,7 @@ class _EditProfileState extends State<EditProfile> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -221,7 +222,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -262,7 +263,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Widget get imagePicker {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     double width = 120;
     late Widget child;
     if(image == null) {
@@ -318,7 +319,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Widget get nameTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: nameFocus,
       textCapitalization: TextCapitalization.sentences,
@@ -362,7 +363,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Widget get phoneTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: phoneFocus,
       cursorColor: colors.textColor,
@@ -406,7 +407,7 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Widget get submitButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SizedBox(
       width: double.maxFinite,
       height: 55,

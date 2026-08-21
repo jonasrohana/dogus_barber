@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 import '../../../utils/widgets.dart';
@@ -26,7 +27,7 @@ class _ManageOpeningTimesState extends State<ManageOpeningTimes> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -63,7 +64,7 @@ class _ManageOpeningTimesState extends State<ManageOpeningTimes> {
   }
 
   Widget get openingTimesEdit {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -124,8 +125,8 @@ class _ManageOpeningTimesState extends State<ManageOpeningTimes> {
   }
 
   Widget get submitButton {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
           color: colors.backgroundColor,

@@ -383,5 +383,9 @@
     "active": "Active",
     "save_percent": "Save {}€",
     "subscribe": "Subscribe"
-  }
+  },
+  "employeeServices": "Employees and their services",
+  "loginSignUp": "Log In/Register",
+  "accountInfo": "To book appointments or manage your profile, you must be logged in with your user account",
+  "expect": "Here's what you can expect:"
 }

@@ -1,23 +1,19 @@
 import 'dart:async';
-import 'package:app_links/app_links.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:jiffy/jiffy.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:dogus_barber/application/customer/profile_settings.dart';
 import 'package:dogus_barber/controller+api/bookings_controller.dart';
 import 'package:dogus_barber/utils/models.dart';
+import '../../auth+onboarding/login_register.dart';
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
-import '../../utils/constants.dart';
 import '../../utils/functions.dart';
 import '../../utils/widgets.dart';
 import '../chat/chat_decision.dart';
@@ -33,21 +29,12 @@ class CustomerPage extends StatefulWidget {
 
 class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMixin  {
 
-  StreamSubscription? appLinksStream;
   StreamSubscription? authStream;
   StreamSubscription? chatStream;
   List<String> unreadEmployeeIds = [];
 
-  void initAppLinks() {
-    // needed to handle possible deeplink returns from stripe
-    final appLinks = AppLinks();
-    appLinksStream = appLinks.uriLinkStream.listen((uri) {
-      print(uri);
-    });
-  }
-
   void initChatStream() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     String uid = FirebaseAuth.instance.currentUser!.uid;
     UserProfile? profile = Provider.of<UserController>(context, listen: false).getUserProfile;
     if(profile != null && !profile.disabledBy.contains(vendor.id)) {
@@ -74,7 +61,7 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
   Future<void> handleWaitingDates() async {
     UserProfile? user = Provider.of<UserController>(context, listen: false).getUserProfile;
     List<String> removeDates = [];
-    if(user!.waitingList != null && user.waitingList!.isNotEmpty) {
+    if(user != null && user.waitingList != null && user.waitingList!.isNotEmpty) {
       for(var i in user.waitingList!) {
         DateTime waitDate = parseDateString(i.split("/").last);
         String empId = i.split("/").first;
@@ -86,7 +73,6 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
         .collection('user').doc(FirebaseAuth.instance.currentUser!.uid)
         .update({'waitingDates': FieldValue.arrayRemove(removeDates)});
     }
-
   }
 
   @override
@@ -95,30 +81,29 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
     authStream = FirebaseAuth.instance.authStateChanges().listen((user) {
       if(user != null) {
         initChatStream();
+        handleWaitingDates();
       }
       else {
         chatStream?.cancel();
         unreadEmployeeIds.clear();
       }
+      setState(() {});
     });
-    initAppLinks();
-    handleWaitingDates();
   }
 
   @override
   void dispose() {
     authStream?.cancel();
     chatStream?.cancel();
-    appLinksStream?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     UserProfile? user = Provider.of<UserController>(context).getUserProfile;
-    bool showFab = user != null && user.verifiedBy.contains(vendor.id) && !user.disabledBy.contains(vendor.id);
+    bool showFab = user == null || (user.verifiedBy.contains(vendor.id) && !user.disabledBy.contains(vendor.id))  ;
     return Stack(
       children: <Widget>[
         Stack(
@@ -200,76 +185,100 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     UserProfile? user = Provider.of<UserController>(context).getUserProfile;
-    if(user!.disabledBy.contains(vendor.id)) {
-      return SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 50),
-              const ThemedSvgImage(assetName: "empty", height: 150),
-              const SizedBox(height: 50),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'general.blocked'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.textColor.withValues(alpha: 0.9),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    height: 1.4
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-      );
-    }
 
-    if(user.unverifiedBy.contains(vendor.id) || !user.verifiedBy.contains(vendor.id)){
-      return SingleChildScrollView(
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 50),
-              const ThemedSvgImage(assetName: "user", height: 150),
-              const SizedBox(height: 50),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Text(
-                  'general.notVerified'.tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: colors.textColor.withValues(alpha: 0.9),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    height: 1.4
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-      );
+    if (user == null) {
+      return noLoginPage;
     }
+    else {
+      if(user.disabledBy.contains(vendor.id)) {
+        return SingleChildScrollView(
+          child: Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 50),
+                const ThemedSvgImage(assetName: "empty", height: 150),
+                const SizedBox(height: 50),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'general.blocked'.tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: colors.textColor.withValues(alpha: 0.9),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        height: 1.4
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      }
 
-    if(user.verifiedBy.contains(vendor.id)){
-      return const CustomerBookings();
+      if(user.unverifiedBy.contains(vendor.id) || !user.verifiedBy.contains(vendor.id)){
+        return SingleChildScrollView(
+          child: Center(
+            child: Column(
+              children: [
+                const SizedBox(height: 50),
+                const ThemedSvgImage(assetName: "user", height: 150),
+                const SizedBox(height: 50),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'general.notVerified'.tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: colors.textColor.withValues(alpha: 0.9),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        height: 1.4
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      }
+
+      if(user.verifiedBy.contains(vendor.id)){
+        return const CustomerBookings();
+      }
     }
 
     return Container();
   }
 
   Widget? get fab {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return FloatingActionButton(
       shape: const CircleBorder(),
       onPressed: () {
+
+        if(FirebaseAuth.instance.currentUser == null) {
+          showModalBottomSheet(
+            backgroundColor: colors.buttonColor,
+            isScrollControlled: true,
+            clipBehavior: Clip.antiAlias,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+            context: context,
+            builder: (BuildContext context) => Container(
+                decoration: BoxDecoration(borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+                height: MediaQuery.of(context).size.height*0.75,
+                child: LoginScreen())
+          );
+          return;
+        }
+
         // check if vendor has active subscription
         if(!vendor.active) {
           showDialog(
@@ -304,6 +313,138 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
     );
   }
 
+  Widget get noLoginPage {
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    List<Employee> validEmployees = vendor.employees.where((element) => element.services.isNotEmpty).toList();
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+      children: [
+        LoginBanner(),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3.0),
+          child: Text(
+            "employeeServices".tr(),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: colors.textColor)
+          ),
+        ),
+        const SizedBox(height: 12),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: validEmployees.length,
+          separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 15),
+          itemBuilder: (BuildContext context, int index) {
+            Employee emp = validEmployees[index];
+            return Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: colors.buttonColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ImageViewer(hero: emp.id, url: emp.imageUrl))
+                        ),
+                        child: ProfileImageCircle(emp.imageUrl, 50, hero: emp.id)
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          emp.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: colors.textColor
+                          )
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  ListView.separated(
+                    padding: const EdgeInsets.all(0),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: emp.services.length,
+                    separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 15),
+                    itemBuilder: (BuildContext context, int index) {
+                      Service s = emp.services[index];
+                      return Container(
+                        clipBehavior: Clip.antiAlias,
+                        padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: colors.backgroundColor,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 15,
+                                color: Color(s.color).withValues(alpha: 1),
+                              ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          s.name,
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: colors.textColor
+                                          )
+                                      ),
+                                      const SizedBox(height: 3,),
+                                      Text(
+                                          durationString(s.duration),
+                                          style: TextStyle(
+                                              fontSize: 15,
+                                              color: colors.textColor.withValues(alpha: 0.7)
+                                          )
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 15.0),
+                                child: Text(
+                                  doubleToEuroString(s.price),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: colors.textColor.withValues(alpha: 0.8)
+                                  )
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                ],
+              ),
+            );
+          },
+        )
+      ],
+    );
+  }
+
 }
 
 class CustomerBookings extends StatefulWidget {
@@ -320,8 +461,7 @@ class _CustomerBookingsState extends State<CustomerBookings> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    bool showSubs = kDebugMode || FirebaseAuth.instance.currentUser!.email != "test@yahoo.de";
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SingleChildScrollView(
       child: LoadingStack(
         loading: loading,
@@ -360,9 +500,9 @@ class _CustomerBookingsState extends State<CustomerBookings> {
   // }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     List<Appointment> booked = Provider.of<BookingsController>(context).appointments;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
 
     // filter for selected vendor and future dates
     DateTime now = DateTime.now();
@@ -406,8 +546,8 @@ class _CustomerBookingsState extends State<CustomerBookings> {
   }
 
   Widget appointmentRow(Appointment app, context) {
-    Employee? emp = Provider.of<UserController>(context).getEmployeeById(app.employeeId ?? "");
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Employee? emp = Provider.of<VendorController>(context).getEmployeeById(app.employeeId ?? "");
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(

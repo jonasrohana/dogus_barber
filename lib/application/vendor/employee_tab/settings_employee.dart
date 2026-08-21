@@ -18,6 +18,7 @@ import 'package:dogus_barber/application/vendor/employee_tab/manage_services.dar
 import 'package:dogus_barber/application/vendor/employee_tab/edit_employee.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/constants.dart';
 import '../../../utils/models.dart';
@@ -42,10 +43,10 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     String uid = FirebaseAuth.instance.currentUser!.uid;
-    Employee emp = Provider.of<UserController>(context).getEmployeeById(uid)!;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    Employee emp = Provider.of<VendorController>(context).getEmployeeById(uid)!;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     bool isAdmin = vendor.admins.contains(uid);
     return LoadingStack(
       loading: loading,
@@ -248,8 +249,8 @@ class _EmployeeSettingsState extends State<EmployeeSettings> {
 
   Widget get userBox {
     User authUser = FirebaseAuth.instance.currentUser!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Employee emp = Provider.of<UserController>(context).getEmployeeById(authUser.uid)!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Employee emp = Provider.of<VendorController>(context).getEmployeeById(authUser.uid)!;
     return Container(
       width: double.maxFinite,
       decoration: BoxDecoration(
@@ -354,7 +355,7 @@ class _ShareQRCodeState extends State<ShareQRCode> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     double width = MediaQuery.of(context).size.width - 40;
     return Container(
       decoration: BoxDecoration(

@@ -13,6 +13,7 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:dogus_barber/utils/models.dart';
 import '../../controller+api/bookings_controller.dart';
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../utils/functions.dart';
@@ -72,7 +73,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
 
   Future<void> bookAppointment() async {
 
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     UserProfile? user = Provider.of<UserController>(context, listen: false).getUserProfile!;
 
     String? dateTakenString = Provider.of<BookingsController>(context,listen: false).isDateTaken(firestoreString(selectedDate), selectedEmployee!.id);
@@ -163,7 +164,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Future<void> showDatePicker() async {
-    ColorTheme colors = Provider.of<UserController>(context,listen:false).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context,listen:false).getColors;
     DateTime initialDate = selectedDate;
     final retVal = await showModalBottomSheet(
       backgroundColor: colors.buttonColor,
@@ -211,7 +212,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
     if(selectedEmployee == null) {
       return;
     }
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     dayStream = FirebaseFirestore.instance
       .collection("vendors").doc(vendor.id)
       .collection("employees").doc(selectedEmployee!.id)
@@ -232,7 +233,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       body: SafeArea(child: pages),
@@ -264,7 +265,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget get appBar {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15),
       child: Row(
@@ -304,10 +305,9 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget get employeePage {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    List<Employee> validEmployees = vendor.employees.where((element) =>
-        element.services.isNotEmpty).toList();
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    List<Employee> validEmployees = vendor.employees.where((element) => element.services.isNotEmpty).toList();
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       physics: const BouncingScrollPhysics(),
@@ -389,7 +389,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
                 ),
               );
             },
-        ),
+          ),
       ],
     );
   }
@@ -399,7 +399,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
       return Container();
     }
 
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       physics: const BouncingScrollPhysics(),
@@ -506,7 +506,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget get summary {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     String serviceString = chosenServices.map((e) => e.name).join(", ");
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
@@ -674,7 +674,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget displayText(String label, String text, bool showImage) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     Widget imageWidget = Container();
     if(showImage && selectedEmployee != null) {
       imageWidget =  ClipOval(
@@ -717,7 +717,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget pageTitle(String text) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       padding: const EdgeInsets.only(left: 15),
       alignment: Alignment.centerLeft,
@@ -736,8 +736,8 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
     if(selectedEmployee == null) {
       return Container();
     }
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     if(isPastDue(selectedDate)){
       return Column(
         children: [
@@ -850,10 +850,10 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget freeAppointments(List<QueryDocumentSnapshot<Object?>> appointments, int duration) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     List<TimeSlot> freeTimes = getFreeAppointments(selectedEmployee, appointments, selectedDate, duration.round());
     UserProfile? user = Provider.of<UserController>(context).getUserProfile;
-    Employee? emp = Provider.of<UserController>(context).getEmployeeById(selectedEmployee!.id);
+    Employee? emp = Provider.of<VendorController>(context).getEmployeeById(selectedEmployee!.id);
     String waitingDateString = "${emp!.id}/${firestoreString(selectedDate)}";
     if(freeTimes.isEmpty) {
       return Center(
@@ -959,7 +959,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget get dateWidgets {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.fromLTRB(5, 15, 5, 20),
@@ -1010,7 +1010,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   List<Widget> getWeekWidgets(List<DateTime> dates) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     List<Widget> widgetList = [];
     for (var d in dates) {
       bool isSelected = d.day == selectedDate.day && d.month == selectedDate.month && d.year == selectedDate.year;
@@ -1052,7 +1052,7 @@ class _CreateAppointmentState extends State<CreateAppointment> with TickerProvid
   }
 
   Widget get submitButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.backgroundColor,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/models.dart';
 import '../../utils/widgets.dart';
@@ -24,7 +25,7 @@ class _ChatDecisionState extends State<ChatDecision>{
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       backgroundColor: colors.backgroundColor,
       appBar: AppBar(
@@ -39,8 +40,8 @@ class _ChatDecisionState extends State<ChatDecision>{
   }
 
   Widget employeePage(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     return Column(
       children: [
         Expanded(
@@ -101,7 +102,7 @@ class _ChatDecisionState extends State<ChatDecision>{
   }
 
   Widget get submitButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.backgroundColor,

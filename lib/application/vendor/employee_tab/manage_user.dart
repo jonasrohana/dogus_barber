@@ -13,6 +13,7 @@ import 'package:dogus_barber/utils/functions.dart';
 import 'package:dogus_barber/utils/widgets.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 import '../../chat/chat_detail.dart';
@@ -42,7 +43,7 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   List<UserProfile> blocked = [];
 
   Future<void> fetchOpenVerificationUser() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     var query = await FirebaseFirestore.instance
       .collection('user')
       .where('unverifiedBy', arrayContains: vendor.id)
@@ -55,7 +56,7 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Future<void> fetchAllUser() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     var query = await FirebaseFirestore.instance
       .collection('user')
       .where('verifiedBy', arrayContains: vendor.id)
@@ -68,7 +69,7 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Future<void> fetchBlockedUser() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     var query = await FirebaseFirestore.instance
       .collection('user')
       .where('disabledBy', arrayContains: vendor.id)
@@ -99,7 +100,7 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -151,8 +152,8 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Widget get unverifiedUserList {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(loading[0]) {
       return Column(
         children: [
@@ -267,8 +268,8 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Widget get allUserList {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     String uid = FirebaseAuth.instance.currentUser!.uid;
     bool isAdmin = vendor.admins.contains(uid);
     bool fixedApps = vendor.employees.any(
@@ -439,8 +440,8 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Widget get blockedUserList {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(loading[2]) {
       return Column(
         children: [
@@ -525,7 +526,7 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Widget get searchBar {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: TextField(
@@ -574,7 +575,7 @@ class _ManageUserState extends State<ManageUser> with TickerProviderStateMixin {
   }
 
   Widget emptyState(int type) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     late String text;
     if(type == 0) {
@@ -648,7 +649,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   );
 
   bool get isAdmin {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     return vendor.admins.contains(uid);
   }
 
@@ -658,7 +659,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
 
     name.text = widget.up.name;
 
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
 
     selectedEmployeeId = vendor.employees.firstWhere((emp) => emp.workTimes.any((day) => day.isNotEmpty)).id;
 
@@ -666,7 +667,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   void setEmployee() {
-    Employee emp = Provider.of<UserController>(context, listen: false)
+    Employee emp = Provider.of<VendorController>(context, listen: false)
         .getEmployeeById(selectedEmployeeId)!;
 
     days.clear();
@@ -684,7 +685,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
 
     fetchFixedAppointments();
 
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     int index = vendor.employees.map((e) => e.id).toList().indexOf(selectedEmployeeId);
 
     if (index >= 0) {
@@ -699,7 +700,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   Future<void> fetchFixedAppointments() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     final String empId = selectedEmployeeId;
 
     var query = await FirebaseFirestore.instance
@@ -722,7 +723,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   Future<void> bookFixedAppointment() async {
     if (selectedDay == null || loadingFixedAppointments) return;
 
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
 
     var newDoc = FirebaseFirestore.instance
         .collection('vendors')
@@ -785,7 +786,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return SingleChildScrollView(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -915,8 +916,8 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   Widget get employeeSelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
 
     if (vendor.employees.length < 2 || !isAdmin) {
       return Container();
@@ -988,7 +989,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   Widget get daySelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -1034,7 +1035,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   Widget get timeRangeSelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return TimeRange(
       fromTitle: Text(
@@ -1082,7 +1083,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   Widget get serviceTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -1123,7 +1124,7 @@ class _BookingFixedAppointmentSheetState extends State<BookingFixedAppointmentSh
   }
 
   Widget get disabledNameTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),

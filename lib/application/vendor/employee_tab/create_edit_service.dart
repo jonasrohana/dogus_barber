@@ -10,6 +10,7 @@ import 'package:dogus_barber/utils/functions.dart';
 import 'package:dogus_barber/utils/models.dart';
 import 'package:uuid/uuid.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/validator.dart';
 import '../../../utils/widgets.dart';
@@ -68,7 +69,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -91,7 +92,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get body {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -150,7 +151,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get nameTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: nameFocus,
       textCapitalization: TextCapitalization.sentences,
@@ -193,7 +194,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get priceTf {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return TextField(
       focusNode: priceFocus,
       cursorColor: colors.textColor,
@@ -237,7 +238,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get durationSlider {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -280,7 +281,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get colorPicker {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return ColorPicker(
       padding: const EdgeInsets.all(0),
       pickersEnabled: const <ColorPickerType, bool>{ColorPickerType.primary : true, ColorPickerType.accent: false},
@@ -309,7 +310,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get submitButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SizedBox(
       width: double.maxFinite,
       height: 55,
@@ -340,7 +341,7 @@ class _CreateEditServiceState extends State<CreateEditService> {
   }
 
   Widget get deleteButton {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return SizedBox(
       width: double.maxFinite,
       height: 55,

@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controller+api/user_controller.dart';
+import '../../controller+api/vendor_controller.dart';
 import '../../utils/colors.dart';
 import '../../utils/constants.dart';
 import '../../utils/functions.dart';
@@ -51,7 +52,7 @@ class _ChatOverviewState extends State<ChatOverview> {
   }
 
   Future<void> fetchUserMessages() async {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
     var uid = FirebaseAuth.instance.currentUser?.uid;
     chatStream = FirebaseFirestore.instance
       .collection("vendors").doc(vendor.id)
@@ -103,7 +104,7 @@ class _ChatOverviewState extends State<ChatOverview> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     if(loading) {
       return const Padding(
         padding: EdgeInsets.all(30),
@@ -146,7 +147,7 @@ class _ChatOverviewState extends State<ChatOverview> {
         ChatUser otherUser = room.chatUser.firstWhere((element) => element.userId != uid);
         return InkWell(
           onTap: () {
-            Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
+            Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
             if(room.unread.contains(uid)) {
               FirebaseFirestore.instance
                 .collection("vendors").doc(vendor.id)

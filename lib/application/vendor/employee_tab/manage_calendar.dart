@@ -9,6 +9,7 @@ import 'package:ionicons/ionicons.dart';
 import 'package:provider/provider.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import '../../../controller+api/user_controller.dart';
+import '../../../controller+api/vendor_controller.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/models.dart';
 import '../../../utils/widgets.dart';
@@ -38,9 +39,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
   late double weeksIndex;
 
   void setEmployee() {
-    Vendor vendor = Provider.of<UserController>(context, listen: false).getVendor!;
-
-    Employee emp = Provider.of<UserController>(context, listen: false).getEmployeeById(selectedEmployeeId)!;
+    Vendor vendor = Provider.of<VendorController>(context, listen: false).getVendor!;
+    Employee emp = Provider.of<VendorController>(context, listen: false).getEmployeeById(selectedEmployeeId)!;
     workTimes = emp.workTimes;
     breakTimes = emp.breakTimes;
     weeksIndex = emp.numBookingWeeks.toDouble();
@@ -59,7 +59,7 @@ class _ManageCalendarState extends State<ManageCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Scaffold(
       extendBodyBehindAppBar: false,
       appBar: AppBar(
@@ -82,8 +82,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
   }
 
   Widget get body {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Container(
       margin: const EdgeInsets.only(top: 0),
@@ -126,8 +126,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
 
 
   Widget get employeeSelection {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     bool isAdmin = vendor.admins.contains(uid);
     if(vendor.employees.length < 2 || !isAdmin) {
       return Container();
@@ -183,8 +183,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
   }
 
   Widget get bookingWeeks {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +229,7 @@ class _ManageCalendarState extends State<ManageCalendar> {
   }
 
   Widget pageTitle(String text, int type) {
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool expanded = type == 0 ? showWorkTimes : showBreakTimes;
     return GestureDetector(
       onTap: () => setState(() {
@@ -267,8 +267,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
   }
   
   Widget get workTimesEdit {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Container(
       margin: const EdgeInsets.all(16),
@@ -330,8 +330,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
   }
 
   Widget get breakTimesEdit {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     bool isAdmin = vendor.admins.contains(uid);
     return Container(
       margin: const EdgeInsets.all(16),
@@ -462,8 +462,8 @@ class _ManageCalendarState extends State<ManageCalendar> {
   }
   
   Widget get submitButton {
-    Vendor vendor = Provider.of<UserController>(context).getVendor!;
-    ColorTheme colors = Provider.of<UserController>(context).getColors;
+    Vendor vendor = Provider.of<VendorController>(context).getVendor!;
+    ColorTheme colors = Provider.of<VendorController>(context).getColors;
     return Container(
       decoration: BoxDecoration(
         color: colors.backgroundColor,
