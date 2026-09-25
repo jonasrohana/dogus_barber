@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "apps.rohana.dogus_barber"
+    namespace = "apps.rohana.houseofefendi"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "apps.rohana.dogus_barber"
+        applicationId = "apps.rohana.houseofefendi"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

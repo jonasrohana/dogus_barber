@@ -1,4 +1,4 @@
-package apps.rohana.dogus_barber
+package apps.rohana.houseofefendi
 
 import io.flutter.embedding.android.FlutterActivity
 

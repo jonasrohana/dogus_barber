@@ -318,6 +318,7 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
     Vendor vendor = Provider.of<VendorController>(context).getVendor!;
     List<Employee> validEmployees = vendor.employees.where((element) => element.services.isNotEmpty).toList();
     return ListView(
+      physics: BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       children: [
         LoginBanner(),
@@ -440,7 +441,8 @@ class _CustomerPageState extends State<CustomerPage> with TickerProviderStateMix
               ),
             );
           },
-        )
+        ),
+        const SizedBox(height: 100),
       ],
     );
   }
