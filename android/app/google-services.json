@@ -9,6 +9,25 @@
       "client_info": {
         "mobilesdk_app_id": "1:1054062945185:android:fa3e7b52da4fa1350521e0",
         "android_client_info": {
+          "package_name": "apps.rohana.dogus_barber"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRtF4EnV4bUJJ7HGePMPlJ7XSeJ3sDtpM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054062945185:android:8cef24bd91dcfc820521e0",
+        "android_client_info": {
           "package_name": "apps.rohana.houseofefendi"
         }
       },
